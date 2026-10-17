@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="ZYNOVRA — Friendly AI chat by Pawan Verma (pawangamingstudio). Hindi, Hinglish & English." />
+<title>ZYNOVRA — Har Bhasha, Har Baat</title>
+<style>
+:root{
+  --bg:#0b0c10; --sidebar:#06070a; --surface:#151821; --surface2:#1c202c; --bubble:#202532;
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.18);
+  --text:#f3f4f6; --sub:#9ca3af; --muted:#7b8496; --brand:#38bdf8; --ok:#22c55e; --bad:#f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button{font-family:inherit} ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-thumb{background:#262b38;border-radius:99px}
+.app{display:flex;width:100%;height:100dvh;position:relative}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:90}
+.backdrop.show{display:block}
+.sidebar{width:272px;height:100%;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px;z-index:100;flex-shrink:0;transition:transform .24s cubic-bezier(.16,1,.3,1)}
+@media(max-width:768px){.sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}}
+.new-chat{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:.88rem;font-weight:600;cursor:pointer}
+.new-chat:hover{background:var(--surface2)}
+.brand-mini{display:flex;align-items:center;gap:9px}
+.sec{font-size:.7rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);padding:14px 8px 6px}
+.chat-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.chat-item{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:8px;font-size:.84rem;color:var(--sub);cursor:pointer}
+.chat-item:hover,.chat-item.active{background:var(--surface);color:var(--text)}
+.chat-item .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-item .del{opacity:0;border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 3px}
+.chat-item:hover .del{opacity:1}
+.empty-list{font-size:.8rem;color:var(--muted);padding:10px 8px;line-height:1.5}
+.side-foot{padding-top:12px;border-top:1px solid var(--border)}
+.mode-pill{display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:.8rem;text-align:left}
+.mode-pill:hover{border-color:var(--border2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0;box-shadow:0 0 8px var(--ok)}
+.dot.local{background:#f59e0b;box-shadow:0 0 8px #f59e0b}
+.foot-note{font-size:.68rem;color:var(--muted);padding:8px 4px 0;line-height:1.5}
+.main{flex:1;display:flex;flex-direction:column;height:100%;min-width:0}
+.navbar{height:54px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:6px}
+.icon-btn{width:36px;height:36px;border-radius:9px;border:none;background:transparent;color:var(--sub);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.icon-btn:hover{background:var(--surface);color:var(--text)}
+.brand-btn{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:9px;background:transparent;border:none;color:var(--text);font-size:.96rem;font-weight:800;letter-spacing:.6px;cursor:pointer}
+.brand-btn:hover{background:var(--surface)}
+.brand-btn small{font-size:.75rem;font-weight:500;color:var(--muted)}
+.status-chip{font-size:.72rem;color:var(--sub);border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.status-chip:hover{border-color:var(--border2);color:var(--text)}
+.viewport{flex:1;overflow-y:auto;padding:22px 16px 12px;display:flex;flex-direction:column;gap:22px;scroll-behavior:smooth}
+.hero{margin:auto;max-width:640px;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 8px}
+.hero.hide{display:none}
+.emblem{width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#131722,#0d1017);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.hero h1{font-size:1.5rem;font-weight:600;letter-spacing:-.2px}
+.hero p{color:var(--sub);font-size:.92rem;line-height:1.6;max-width:520px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:8px;text-align:left}
+@media(max-width:520px){.cards{grid-template-columns:1fr}.hero h1{font-size:1.28rem}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;cursor:pointer;color:var(--text)}
+.card:hover{border-color:var(--border2);background:var(--surface2)}
+.card b{display:block;font-size:.86rem;margin-bottom:4px}
+.card span{font-size:.78rem;color:var(--muted);line-height:1.45;display:block}
+.row{max-width:760px;width:100%;margin:0 auto;display:flex;gap:12px;align-items:flex-start}
+.row.user{justify-content:flex-end}
+.bubble{background:var(--bubble);padding:11px 16px;border-radius:18px;max-width:84%;font-size:.94rem;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.ai-ic{width:30px;height:30px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ai-body{flex:1;min-width:0;font-size:.95rem;line-height:1.72;padding-top:3px;word-break:break-word}
+.msg-time{font-size:.64rem;color:var(--muted);margin-top:5px}
+.pro-badge{font-size:.62rem;font-weight:800;letter-spacing:.6px;color:#0b0c10;background:var(--brand);border-radius:99px;padding:2px 7px;vertical-align:2px}
+.ai-body p{margin:0 0 10px}.ai-body p:last-child{margin-bottom:0}
+.ai-body h3,.ai-body h4{margin:14px 0 7px;font-size:1rem}.ai-body ul,.ai-body ol{margin:6px 0 12px 20px}.ai-body li{margin:3px 0}
+.ai-body blockquote{border-left:3px solid var(--brand);padding:4px 0 4px 12px;color:var(--sub);margin:10px 0}
+.ai-body a{color:var(--brand)}
+.ai-body pre{background:#07090d;border:1px solid var(--border);border-radius:10px;padding:12px 13px;overflow-x:auto;margin:10px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;line-height:1.55;color:#e2e8f0;white-space:pre}
+.ai-body code{background:#181c26;padding:2px 6px;border-radius:5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84em}
+.ai-body pre code{background:none;padding:0}
+.ai-body table{border-collapse:collapse;margin:10px 0;font-size:.86rem}.ai-body th,.ai-body td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+.typing{display:inline-flex;gap:5px;padding:8px 2px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--sub);animation:bl 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.cursor-blink::after{content:"▍";color:var(--brand);animation:bl 1s infinite}
+.msg-actions{display:flex;gap:4px;margin-top:7px}
+.act{border:none;background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;padding:4px 8px;border-radius:7px}
+.act:hover{background:var(--surface);color:var(--text)}
+.composer-wrap{padding:8px 14px 12px;flex-shrink:0}
+.composer{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:7px 8px 7px 12px;display:flex;align-items:flex-end;gap:7px}
+.composer:focus-within{border-color:var(--border2)}
+.composer textarea{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:.95rem;line-height:1.5;padding:7px 2px;resize:none;max-height:160px;min-width:0;font-family:inherit}
+.composer textarea::placeholder{color:var(--muted)}
+.round{width:34px;height:34px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.attach{background:transparent;color:var(--sub)}.attach:hover{background:var(--surface2);color:var(--text)}
+.send{background:var(--text);color:#0b0c10}.send:disabled{opacity:.35;cursor:default}
+.send.stop{background:var(--bad);color:#fff}
+.foot{text-align:center;font-size:.7rem;color:var(--muted);padding-top:8px;line-height:1.5}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:#1e2432;border:1px solid var(--border2);color:var(--text);font-size:.8rem;padding:9px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:300;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="backdrop" id="backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <button class="new-chat" id="new-chat-btn">
+      <span class="brand-mini">
+        <svg width="18" height="18" viewBox="0 0 64 64" fill="none"><path d="M32 6L56 20V44L32 58L8 44V20L32 6Z" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round"/><path d="M21 23H43L21 41H43" stroke="#f8fafc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>New chat</span>
+      </span>
+      <span style="font-size:17px">＋</span>
+    </button>
+    <div class="sec">Recent</div>
+    <div class="chat-list" id="chat-list"></div>
+    <div class="side-foot">
+      <div class="mode-pill" style="cursor:default"><span class="dot" id="side-dot"></span><span id="side-mode-text">Quality Mode • Pehle SAHI, phir tez</span></div>
+      <div class="foot-note">ZYNOVRA • by <b>Pawan Verma</b><br/>pawangamingstudio</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="navbar">
+      <div class="nav-l">
+        <button class="icon-btn" id="menu-btn" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+        <button class="brand-btn" id="brand-btn">ZYNOVRA <span class="pro-badge">PRO</span></button>
+      </div>
+      <div class="nav-r">
+        <span class="status-chip" id="lang-chip" title="Language of your latest message">🌐 Auto Language</span>
+        <button class="icon-btn" id="new-chat-btn2" aria-label="New chat"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </header>
+
+    <div class="viewport" id="viewport">
+      <div class="hero" id="hero">
+        <div class="emblem"><svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M32 6L56 20V44L32 58L8 44V20L32 6Z" stroke="#38bdf8" stroke-width="3.8" stroke-linejoin="round"/><path d="M21 23H43L21 41H43" stroke="#f8fafc" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h1>How can I help you today?</h1>
+        <p>Ask me anything — in <b>English, Hindi, Hinglish</b> or any language. I remember our conversation, reply in your language, and <b>check every answer before sending it</b>.</p>
+        <div class="cards">
+          <button class="card" data-sug="Aur bhai, kaise ho? Thoda doston wali baat-cheet karte hain"><b>💬 Dost jaisi baat-cheet</b><span>“Aur bhai, kaise ho?” — natural conversation</span></button>
+          <button class="card" data-sug="Photosynthesis kya hota hai, aasan bhasha me samjhao"><b>📚 Padhai / Samjhao</b><span>Photosynthesis aasan bhasha me samjhao</span></button>
+          <button class="card" data-sug="Python me ek calculator ka code banao"><b>💻 Code banao</b><span>Python me calculator ka code banao</span></button>
+          <button class="card" data-sug="Hola amigo, explícame la gravedad en español"><b>🌍 Koi Bhi Bhasha</b><span>Hola amigo, explícame la gravedad…</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer-wrap">
+      <form class="composer" id="composer">
+        <button type="button" class="round attach" id="attach-btn" aria-label="Attach text file">＋</button>
+        <input type="file" id="file-input" accept=".txt,.md,.json,.js,.py,.html,.css,.csv" hidden />
+        <textarea id="input" rows="1" placeholder="Message ZYNOVRA…  (Enter to send · Shift+Enter for new line)"></textarea>
+        <button type="submit" class="round send" id="send-btn" aria-label="Send"><svg id="send-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="stop-t" style="display:none;font-weight:900">■</span></button>
+      </form>
+      <div class="foot">ZYNOVRA galti bhi kar sakta hai — important jankari verify kar lein. ताज़ा जानकारी के लिए जवाब web-sources के साथ आता है। • © 2026 ZYNOVRA</div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   ZYNOVRA (by Pawan Verma / pawangamingstudio)
+   PEHLE SAMAJH, PHIR JAWAB — koi API key nahi, koi training-file nahi.
+   1) SAMAJH LAYER (browser me): 30+ bhashaon ki pehchan (script + shabd),
+      Hinglish/Devanagari/English/mixed, intent, mood, context, yaad.
+   2) LANGUAGE MODEL (bina key): har tarah ke croreon messages ko
+      dataset me ratne ke bajaye model samajh kar jawab banata hai.
+   3) WEB SEARCH: taza / data-me-nahi jankari Wikipedia+web se, sources sath,
+      aur jawab ULSI bhasha me saaf-suthra.
+   4) LOCAL SAMAJH fallback: net slow ho to baat-cheet kabhi nahi rukti.
+   ===================================================================== */
+
+/* ---------- helpers & state ---------- */
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let sessions = store.get("zynovra_sessions_v1", store.get("zynovra3_sessions", []));
+let currentId = store.get("zynovra_current_v1", store.get("zynovra3_current", null));
+// STABLE PROFILE KEY — file ka version kitna bhi badle, user ki yaad yahi rahegi (naya user kabhi nahi lagega)
+let memory = Object.assign({ name:"", likes:[], dislikes:[], facts:[], topics:[], mood:"", lastTopic:"", lastIntent:"", lastAnswer:"", lastLang:"", prefLang:"", jokeIdx:0, shayariIdx:0, storyIdx:0, factIdx:0, turns:0 },
+  store.get("zynovra_profile_v1", store.get("zynovra3_memory", {})));
+let generating = false, stopFlag = false, typingTimer = null;
+
+function saveAll(){ store.set("zynovra_sessions_v1", sessions.slice(0,40)); store.set("zynovra_current_v1", currentId); store.set("zynovra_profile_v1", memory); }
+function activeSession(){ return sessions.find(s => s.id === currentId) || null; }
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 3200); }
+
+/* ---------- UI: sidebar / sessions ---------- */
+function toggleSidebar(open){ $("sidebar").classList.toggle("open", !!open); $("backdrop").classList.toggle("show", !!open); }
+function newSession(){
+  currentId = null; saveAll(); renderSidebar();
+  $("viewport").innerHTML = "";
+  const hero = document.createElement("div"); hero.className = "hero"; hero.id = "hero";
+  hero.innerHTML = '<div class="emblem"><svg width="32" height="32" viewBox="0 0 64 64" fill="none"><path d="M32 6L56 20V44L32 58L8 44V20L32 6Z" stroke="#38bdf8" stroke-width="3.8" stroke-linejoin="round"/><path d="M21 23H43L21 41H43" stroke="#f8fafc" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h1>How can I help you today?</h1><p>Ask me anything — in English, Hindi, Hinglish or any language. I remember our conversation and reply in your language.</p><div class="cards"><button class="card" data-sug="Aur bhai, kaise ho? Thoda doston wali baat-cheet karte hain"><b>💬 Dost jaisi baat-cheet</b><span>Natural conversation try karo</span></button><button class="card" data-sug="Photosynthesis kya hota hai, aasan bhasha me samjhao"><b>📚 Padhai / Samjhao</b><span>Koi topic aasan bhasha me</span></button><button class="card" data-sug="Python me ek calculator ka code banao"><b>💻 Code banao</b><span>Python calculator code</span></button><button class="card" data-sug="Hola amigo, explícame la gravedad en español"><b>🌍 Koi Bhi Bhasha</b><span>Spanish, Bangla, Tamil — koi bhi!</span></button></div>';
+  $("viewport").appendChild(hero); bindCards(); toggleSidebar(false); $("input").focus();
+}
+function bindCards(){ document.querySelectorAll("[data-sug]").forEach(c => { c.onclick = () => { $("input").value = c.getAttribute("data-sug"); autoGrow(); handleSubmit(); }; }); }
+function renderSidebar(){
+  const list = $("chat-list"); list.innerHTML = "";
+  if(!sessions.length){ list.innerHTML = '<div class="empty-list">No recent chats<br/>Nayi baat-cheet shuru karo!</div>'; return; }
+  sessions.forEach(s => {
+    const el = document.createElement("div"); el.className = "chat-item" + (s.id === currentId ? " active" : "");
+    const t = document.createElement("span"); t.className = "t"; t.textContent = s.title || "New chat";
+    const del = document.createElement("button"); del.className = "del"; del.textContent = "✕"; del.title = "Delete chat";
+    del.onclick = (e) => { e.stopPropagation(); sessions = sessions.filter(x => x.id !== s.id); if(currentId === s.id) currentId = sessions[0] ? sessions[0].id : null; saveAll(); renderSidebar(); const a = activeSession(); if(a) renderSession(a); else newSession(); };
+    el.appendChild(t); el.appendChild(del);
+    el.onclick = () => { currentId = s.id; saveAll(); renderSession(s); renderSidebar(); toggleSidebar(false); };
+    list.appendChild(el);
+  });
+}
+function renderSession(s){ $("viewport").innerHTML = ""; (s.messages||[]).forEach(m => appendRow(m.role, m.text, false, m.ts)); scrollDown(true); }
+function ensureSession(firstText){
+  let s = activeSession();
+  if(!s){ s = { id: Date.now(), title: firstText.slice(0,42), messages: [] }; sessions.unshift(s); currentId = s.id; }
+  return s;
+}
+
+/* ---------- markdown (safe) ---------- */
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function formatMarkdown(src){
+  const blocks = [];
+  let t = esc(String(src || ""));
+  t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (m, lang, code) => { blocks.push('<pre><code>' + code.replace(/^\n+|\n+$/g,"") + '</code></pre>'); return "\u0001" + (blocks.length-1) + "\u0001"; });
+  t = t.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  t = t.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  t = t.replace(/^### (.*)$/gm, "<h4>$1</h4>").replace(/^## (.*)$/gm, "<h3>$1</h3>").replace(/^# (.*)$/gm, "<h3>$1</h3>");
+  t = t.replace(/^&gt; (.*)$/gm, "<blockquote>$1</blockquote>");
+  t = t.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const lines = t.split("\n"); let out = [], inUl = false, inOl = false, para = [];
+  const flush = () => { if(para.length){ out.push("<p>" + para.join("<br/>") + "</p>"); para = []; } };
+  const closeLists = () => { if(inUl){ out.push("</ul>"); inUl=false; } if(inOl){ out.push("</ol>"); inOl=false; } };
+  for(const raw of lines){
+    const line = raw.trimEnd();
+    const ph = line.match(/^\u0001(\d+)\u0001$/);
+    if(ph){ flush(); closeLists(); out.push(blocks[+ph[1]]); continue; }
+    const ul = line.match(/^\s*[-•] (.*)$/); const ol = line.match(/^\s*\d+[.)] (.*)$/);
+    if(ul){ flush(); if(inOl){ out.push("</ol>"); inOl=false; } if(!inUl){ out.push("<ul>"); inUl=true; } out.push("<li>" + ul[1] + "</li>"); continue; }
+    if(ol){ flush(); if(inUl){ out.push("</ul>"); inUl=false; } if(!inOl){ out.push("<ol>"); inOl=true; } out.push("<li>" + ol[1] + "</li>"); continue; }
+    closeLists();
+    if(!line.trim()){ flush(); continue; }
+    if(/^<h[34]>/.test(line) || /^<blockquote>/.test(line) || /^<pre>/.test(line)){ flush(); out.push(line); continue; }
+    para.push(line);
+  }
+  flush(); closeLists();
+  return out.join("\n") || "<p></p>";
+}
+
+/* ---------- messages UI ---------- */
+const AI_ICON = '<svg width="16" height="16" viewBox="0 0 64 64" fill="none"><path d="M32 6L56 20V44L32 58L8 44V20L32 6Z" stroke="#38bdf8" stroke-width="4.5"/><path d="M21 23H43L21 41H43" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function scrollDown(instant){ const v = $("viewport"); v.scrollTo({ top: v.scrollHeight, behavior: instant ? "auto" : "smooth" }); }
+function appendRow(role, text, animate, ts){
+  const hero = $("hero"); if(hero) hero.remove();
+  const v = $("viewport"); const row = document.createElement("div"); row.className = "row " + role;
+  if(role === "user"){
+    const b = document.createElement("div"); b.className = "bubble"; b.textContent = text; row.appendChild(b);
+    if(ts){ const tm = document.createElement("div"); tm.className = "msg-time"; tm.textContent = new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); tm.style.textAlign = "right"; row.appendChild(tm); }
+  } else {
+    const ic = document.createElement("div"); ic.className = "ai-ic"; ic.innerHTML = AI_ICON;
+    const body = document.createElement("div"); body.className = "ai-body"; body.innerHTML = formatMarkdown(text);
+    const acts = document.createElement("div"); acts.className = "msg-actions";
+    const cp = document.createElement("button"); cp.className = "act"; cp.textContent = "📋 Copy";
+    cp.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(text); toast("Copied ✓"); };
+    const rg = document.createElement("button"); rg.className = "act"; rg.textContent = "↻ Dobara";
+    rg.onclick = () => regenerate();
+    acts.appendChild(cp); acts.appendChild(rg);
+    const wrap = document.createElement("div"); wrap.style.cssText = "flex:1;min-width:0"; wrap.appendChild(body); wrap.appendChild(acts);
+    if(ts){ const tm = document.createElement("div"); tm.className = "msg-time"; tm.textContent = new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); wrap.appendChild(tm); }
+    row.appendChild(ic); row.appendChild(wrap); row._body = body;
+  }
+  v.appendChild(row); scrollDown(!animate); return row;
+}
+function typingRow(){
+  const hero = $("hero"); if(hero) hero.remove();
+  const v = $("viewport"); const row = document.createElement("div"); row.className = "row ai";
+  row.innerHTML = '<div class="ai-ic">' + AI_ICON + '</div><div class="ai-body"><span class="typing"><i></i><i></i><i></i></span></div>';
+  v.appendChild(row); scrollDown(false); return row;
+}
+
+/* =====================================================================
+   LOCAL BRAIN — context-aware conversation (no key needed)
+   ===================================================================== */
+function detectLang(text){
+  if(/[\u0900-\u097F]/.test(text)) return "hi";
+  const words = new Set(text.toLowerCase().replace(/[^a-z\s]/g," ").split(/\s+/).filter(Boolean));
+  const hing = new Set("hai hain kya kaise kyun kyu kitna kitni hoga hogi honge mera meri mere mujhe tum tumhe aap bhai aur nahi batao samjhao karo kar hota hoti hote chahiye matlab wala wali raha rahi accha achha theek dost yaar banao sunao likho mein me ka ki ke ko se par bhi toh abhi kuch koi".split(" "));
+  let h = 0; words.forEach(w => { if(hing.has(w)) h++; });
+  return h >= 1 ? "hinglish" : "en";
+}
+function L(lang, hi, hinglish, en){ return lang === "hi" ? hi : (lang === "en" ? en : hinglish); }
+function norm(t){ return t.toLowerCase().replace(/[?!.,;:'"()]/g," ").replace(/\s+/g," ").trim(); }
+function pick(arr, idx){ return arr[Math.abs(idx || 0) % arr.length]; }
+function cap(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function userNamePrefix(){ return memory.name ? (" " + memory.name) : ""; }
+
+/* safe math evaluator (no eval) */
+function evalMath(expr){
+  const e = String(expr).replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/\^/g,"**").replace(/(\d+(?:\.\d+)?)\s*%\s*of\s*(\d+(?:\.\d+)?)/gi,"($1/100*$2)").trim();
+  if(!/^[0-9+\-*/().\s%*]+$/.test(e) || !/\d/.test(e)) return null;
+  const toks = e.match(/\*\*|\d+(?:\.\d+)?|[+\-*/()%]/g); if(!toks) return null;
+  const prec = { "+":1, "-":1, "*":2, "/":2, "%":2, "**":3 };
+  const out = [], ops = [];
+  for(let i=0;i<toks.length;i++){
+    let tk = toks[i];
+    if(/^\d/.test(tk)){ out.push(parseFloat(tk)); continue; }
+    if(tk === "("){ ops.push(tk); continue; }
+    if(tk === ")"){ while(ops.length && ops[ops.length-1] !== "(") out.push(ops.pop()); if(!ops.length) return null; ops.pop(); continue; }
+    if(tk === "-" && (i===0 || ["(","+","-","*","/","%","**"].includes(toks[i-1]))){ out.push(0); }
+    while(ops.length && ops[ops.length-1] !== "(" && prec[ops[ops.length-1]] >= prec[tk]) out.push(ops.pop());
+    ops.push(tk);
+  }
+  while(ops.length){ const o = ops.pop(); if(o === "(") return null; out.push(o); }
+  const st = [];
+  for(const tk of out){
+    if(typeof tk === "number"){ st.push(tk); continue; }
+    const b = st.pop(), a = st.pop(); if(a === undefined || b === undefined) return null;
+    if(tk === "+") st.push(a+b); else if(tk === "-") st.push(a-b); else if(tk === "*") st.push(a*b);
+    else if(tk === "/"){ if(b === 0) return null; st.push(a/b); } else if(tk === "%") st.push(a%b); else if(tk === "**") st.push(Math.pow(a,b)); else return null;
+  }
+  if(st.length !== 1 || !isFinite(st[0])) return null;
+  return Math.round(st[0] * 1e10) / 1e10;
+}
+
+const JOKES = [
+  "**Teacher:** Batao, duniya me sabse tez kya chalta hai?\n**Pappu:** Sir, bijli!\n**Teacher:** Dusre number par?\n**Pappu:** Meri mummy ki chappal, jab main zyada phone chalata hoon! 😂",
+  "Ek aadmi doctor ke paas gaya — “Doctor sahab, main har baat bhool jata hoon!”\nDoctor: “Ye problem kab se hai?”\nAadmi: “Kaunsi problem?” 😄",
+  "**Biwi:** Suno, main khoobsurat lag rahi hoon na?\n**Pati:** Haan...\n**Biwi:** Kitni?\n**Pati:** Itni ki dil karta hai dusri shaadi bhi tumse hi kar loon! 😂",
+  "Pappu exam me fail ho gaya. Papa: “Sharma ji ka beta 95% laya hai!”\nPappu: “Wo to aayega hi, uske papa teacher hain... main to aapka beta hoon, meri majboori samjho!” 😅"
+];
+const SHAYARI = [
+  "*“Hausle buland rakh, raaste khud ban jayenge,*\n*Mehnat itni khamoshi se kar, ki kamyabi shor macha de!”* 🔥",
+  "*“Zindagi ek safar hai suhana,*\n*Kal kya hoga, kisne jana!”* ✨\nChinta chhodo, aaj ko jeeyo bhai.",
+  "*“Girte hain sheh-sawaar hi maidaan-e-jung me,*\n*Wo kya girenge jo ghutno ke bal chala karte hain!”* 💪",
+  "*“Khud ko kar buland itna ki har taqdeer se pehle,*\n*Khuda bande se khud pooche — bata teri raza kya hai!”* 🌟"
+];
+const FACTS = [
+  "Kya tumhe pata hai? 🐙 **Octopus ke 3 dil** hote hain aur uska khoon neela hota hai!",
+  "Mazedaar fact: 🍯 **Shehad (honey) kabhi kharab nahi hota** — 3000 saal purana shehad bhi khane layak mila hai!",
+  "Fact: 🧠 Tumhara dimaag lagbhag **20 watt** bijli paida karta hai — ek dim bulb jalane ke liye kaafi!",
+  "Fact: 🌕 Chaand par tumhare kadmon ke nishan **lakhon saalon** tak reh sakte hain, kyunki wahan hawa hi nahi hai!",
+  "Fact: 💻 Duniya ki pehli computer programmer ek mahila thi — **Ada Lovelace** (1840s me)!"
+];
+const KB = [
+  { k:["photosynthesis","prakash sanshleshan","प्रकाश संश्लेषण","पौधे khana","पौधा khana"], topic:"Photosynthesis (प्रकाश संश्लेषण)", hi:"**Photosynthesis (प्रकाश संश्लेषण)** वो प्रक्रिया है जिससे पौधे सूरज की रोशनी से अपना खाना बनाते हैं।\n\n- पौधे की पत्तियों में **chlorophyll** (हरा रंग) होता है\n- पौधा हवा से **CO₂**, जड़ों से **पानी** और सूरज से **रोशनी** लेता है\n- बदले में **glucose (खाना)** बनता है और **oxygen** निकलती है — वही oxygen हम सांस में लेते हैं! 🌿\n\n**Formula:** 6CO₂ + 6H₂O + sunlight → C₆H₁₂O₆ + 6O₂", en:"**Photosynthesis** is how plants make their own food using sunlight.\n\n- Leaves contain **chlorophyll** (the green pigment)\n- The plant takes **CO₂** from air, **water** from roots, and **light** from the Sun\n- It produces **glucose (food)** and releases **oxygen** — the oxygen we breathe! 🌿\n\n**Formula:** 6CO₂ + 6H₂O + sunlight → C₆H₁₂O₆ + 6O₂" },
+  { k:["gravity","gurutva","गुरुत्व","गुरुत्वाकर्षण"], topic:"Gravity (गुरुत्वाकर्षण)", hi:"**Gravity (गुरुत्वाकर्षण)** वो force है जो cheezon ko ek dusre ki taraf kheenchti hai.\n\n- पृथ्वी हमें अपनी तरफ खींचती है — इसीलिए हम नीचे गिरते हैं, ऊपर नहीं उड़ते\n- **Isaac Newton** ने सेब गिरते देखकर इसका नियम दिया था 🍎\n- Chaand ki gravity पृथ्वी से 6 guna kam hai — wahan tum bahut uncha kud sakte ho!\n- जितनी बड़ी cheez, उतनी zyada gravity", en:"**Gravity** is the force that pulls objects toward each other.\n\n- Earth pulls us down — that's why things fall\n- **Isaac Newton** described it after the famous apple story 🍎\n- The Moon's gravity is 6× weaker — you could jump super high there!\n- Bigger mass = stronger gravity" },
+  { k:["atom","parmanu","परमाणु","anu"], topic:"Atom (परमाणु)", hi:"**Atom (परमाणु)** har cheez का sabse chhota hissa hai.\n\nIske 3 main कण hote hain:\n- **Proton** (+) — बीच में (nucleus)\n- **Neutron** (koi charge nahi) — बीच में\n- **Electron** (−) — चारों ओर चक्कर लगाता है\n\nPoora ब्रह्मांड — tum, main, हवा, पानी — sab atoms se bana hai! ⚛️", en:"An **atom** is the smallest building block of everything.\n\nIt has 3 main particles:\n- **Proton** (+) — in the centre (nucleus)\n- **Neutron** (no charge) — in the centre\n- **Electron** (−) — orbiting around\n\nEverything — you, air, water — is made of atoms! ⚛️" },
+  { k:["artificial intelligence"," ai ","ai kya","machine learning","chatgpt","llm"], topic:"Artificial Intelligence (AI)", hi:"**Artificial Intelligence (AI)** matlab computer ko इंसान जैसा सोचने-समझने की ताकत देना.\n\n- AI data se **seekhta** hai (Machine Learning)\n- **ChatGPT / ZYNOVRA** jaise chatbots bhi AI hain — bade bade text data se trained\n- AI aaj photo pehchanne, gaane suggest karne, game khelne, ilaaj me madad — sab me use hota hai\n\nLekin yaad rakho: AI ke paas sach-much ki भावनाएं nahi hoti, wo pattern seekh kar jawab deta hai. 🤖", en:"**Artificial Intelligence (AI)** means giving computers the ability to learn and respond like humans.\n\n- AI **learns from data** (Machine Learning)\n- Chatbots like **ChatGPT / ZYNOVRA** are AI trained on huge text data\n- AI is used in photos, recommendations, games, healthcare — everywhere\n\nRemember: AI doesn't truly feel emotions; it learns patterns and generates answers. 🤖" },
+  { k:["computer","computer kya","कंप्यूटर"], topic:"Computer", hi:"**Computer** ek electronic machine hai jo data ko process karke kaam ki jankari deti hai.\n\nIske main hisse:\n- **CPU** — dimaag (sochne wala)\n- **RAM** — temporary yaadash\n- **Storage (SSD/Hard disk)** — permanent yaadash\n- **Monitor, Keyboard, Mouse** — dekhne/likhne ke liye\n\nComputer wahi karta hai jo hum use program karke kehte hain! 💻", en:"A **computer** is an electronic machine that processes data into useful information.\n\nMain parts:\n- **CPU** — the brain\n- **RAM** — temporary memory\n- **Storage (SSD/HDD)** — permanent memory\n- **Monitor, Keyboard, Mouse** — input/output\n\nA computer does exactly what we program it to do! 💻" },
+  { k:["internet","internet kya","इंटरनेट","wifi","web"], topic:"Internet", hi:"**Internet** duniya bhar ke computers ka ek bada sa jaal (network) hai.\n\n- Isse hum website, video, message, game — sab chala sakte hain\n- **Website** internet par pada ek page/app hota hai\n- Data chhote packets me hokar ek computer se dusre tak jaata hai — mili-seconds me!\n\nInternet ki shuruaat 1969 me **ARPANET** se hui thi. 🌐", en:"The **Internet** is a huge network connecting computers worldwide.\n\n- It powers websites, videos, messages and games\n- A **website** is a page/app living on the internet\n- Data travels in tiny packets between computers in milliseconds!\n\nIt began in 1969 as **ARPANET**. 🌐" },
+  { k:["python","python language","पायथन"], topic:"Python", hi:"**Python** duniya ki sabse aasan aur popular programming languages me se ek hai. 🐍\n\n- Iski likhai English jaisi simple hoti hai\n- Isse website, app, game, AI, data kaam — sab banta hai\n- Isiliye ChatGPT jaise AI bhi zyadatar Python se train hote hain\n\nExample:\n```python\nnaam = \"ZYNOVRA\"\nprint(f\"Hello, {naam}!\")\n```\nSeekhna hai to bolo — main step-by-step sikha deta hoon!", en:"**Python** is one of the easiest and most popular programming languages. 🐍\n\n- Its syntax reads almost like English\n- Used for websites, apps, games, AI and data work\n- Most AI (including systems like ChatGPT) is built with Python\n\nExample:\n```python\nname = \"ZYNOVRA\"\nprint(f\"Hello, {name}!\")\n```\nWant to learn? Say so — I'll teach step by step!" },
+  { k:["bharat ki rajdhani","india capital","bharat","india ki rajdhani","delhi","भारत की राजधानी"], topic:"भारत की राजधानी", hi:"**भारत की राजधानी नई दिल्ली (New Delhi) hai.** 🇮🇳\n\n- यहीं संसद भवन, राष्ट्रपति भवन और India Gate है\n- भारत duniya ka sabse bada लोकतंत्र hai\n- भारत की kul **28 राज्य** और **8 केंद्र शासित प्रदेश** hain", en:"**The capital of India is New Delhi.** 🇮🇳\n\n- It's home to Parliament House, Rashtrapati Bhavan and India Gate\n- India is the world's largest democracy\n- India has **28 states** and **8 union territories**" },
+  { k:["vayu pradushan","air pollution","pradushan","प्रदूषण","pollution"], topic:"वायु प्रदूषण (Air Pollution)", hi:"**वायु प्रदूषण (Air Pollution)** matlab हवा me hanikarak cheezon ka milna.\n\n**Karan:** गाड़ियों ka धुआं, factory, कचरा जलाना, पराली\n**Asar:** सांस ki bimari, आंखों me jalan, environment kharab\n**Upay:**\n- Ped lagao 🌳, public transport use karo\n- कचरा mat jalao, bijli-पानी bachao\n- Cycle / paidal chhote safar ke liye best hai!", en:"**Air pollution** means harmful substances mixing into the air.\n\n**Causes:** vehicle smoke, factories, burning waste\n**Effects:** breathing problems, eye irritation, environmental damage\n**Solutions:** plant trees 🌳, use public transport, never burn waste, save electricity." },
+  { k:["taj mahal","ताज महल"], topic:"ताज महल", hi:"**ताज महल** भारत ke Agra शहर me hai — duniya ke 7 ajoobon me se ek! 🤍\n\n- Ise **Shah Jahan** ne apni begum **Mumtaz Mahal** ki yaad me banwaya tha (1632–1653)\n- Ye safed sangmarmar (marble) se bana hai\n- Yamuna nadi ke kinare sthit hai\n- Ye pyaar ki sabse khoobsurat nishani mani jati hai", en:"The **Taj Mahal** is in Agra, India — one of the 7 wonders of the world! 🤍\n\n- Built by **Shah Jahan** in memory of **Mumtaz Mahal** (1632–1653)\n- Made of white marble, on the banks of the Yamuna river\n- Considered the most beautiful symbol of love" },
+  { k:["water cycle","jal chakra","जल चक्र","baarish kaise","barish kaise"], topic:"जल चक्र (Water Cycle)", hi:"**जल चक्र (Water Cycle)** — पानी ka nature me ghumte rehna:\n\n1. **Evaporation** — सूरज ki garmi se नदी-समुद्र ka पानी bhaap banta hai\n2. **Condensation** — bhaap thandi hokar बादल banti hai\n3. **Rain** — बादल se बारिश गिरती hai ☔\n4. पानी फिर नदियों-समुद्र me — चक्र chalta rehta hai!", en:"The **water cycle** is water's endless journey in nature:\n\n1. **Evaporation** — sun heats water into vapour\n2. **Condensation** — vapour cools into clouds\n3. **Precipitation** — rain falls ☔\n4. Water flows back to rivers/seas — and repeats!" },
+  { k:["human brain","dimag","दिमाग","brain kaise"], topic:"मानव मस्तिष्क (Human Brain)", hi:"**मानव मस्तिष्क (Brain)** shareer ka control room hai! 🧠\n\n- Isme lagbhag **86 arab (86 billion) neurons** hote hain\n- Ye sochna, yaad, भावना, shareer ki harkat — sab control karta hai\n- Neend ke dauraan dimaag दिन ki jankari ko yaadon me badalta hai\n- Dimaag shareer ki 20% energy akele kha jata hai!", en:"The **human brain** is the body's control room! 🧠\n\n- It has about **86 billion neurons**\n- Controls thinking, memory, emotions and movement\n- During sleep it converts the day's information into memories\n- It uses 20% of the body's energy!" }
+];
+function findKB(s){
+  const padded = " " + s.toLowerCase() + " ";
+  for(const item of KB){
+    for(const rawKey of item.k){
+      const key = rawKey.toLowerCase();
+      if(/[\u0900-\u097F]/.test(key)){ if(s.includes(key)) return item; continue; }
+      const kk = key.trim();
+      if(kk.length <= 3){ const re = new RegExp("(^|\\s)" + kk.replace(/[.*+?^${}()|[\]\\]/g,"\\$&") + "(\\s|$)"); if(re.test(padded)) return item; }
+      else if(padded.includes(key) || padded.includes(" " + kk + " ") || s.includes(kk)) return item;
+    }
+  }
+  return null;
+}
+function extractTopic(raw){
+  let t = String(raw).replace(/क्या होता है|क्या होती है|क्या है|कौन है|कैसे होता है|क्यों होता है|समझाओ|समझाइए|बताओ|बताइए|कृपया/g," ").trim();
+  t = t.replace(/^(please|plz|bhai|yar|yaar|zara)\s+/i,"").trim();
+  t = t.replace(/\b(kya hota hai|kya hoti hai|kya hai|kya he|what is|what are|what do you mean by|explain|samjhao|samjhaiye|samjha do|batao|bataiye|tell me about|ke baare me batao|ke bare me batao|ka matlab|ki jankari|define)\b/gi," ").replace(/\?/g," ").replace(/\s+/g," ").trim();
+  return t;
+}
+async function wikiReply(topic, lang){
+  if(!topic || topic.length < 3 || typeof fetch !== "function") return null;
+  const langs = lang === "hi" ? ["hi","en"] : ["en","hi"];
+  for(const lg of langs){
+    try{
+      const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 6500);
+      const sr = await fetch("https://" + lg + ".wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(topic) + "&utf8=1&format=json&origin=*&srlimit=1", { signal: ctrl.signal });
+      const sd = await sr.json(); const title = sd && sd.query && sd.query.search && sd.query.search[0] && sd.query.search[0].title;
+      if(!title){ clearTimeout(to); continue; }
+      const mr = await fetch("https://" + lg + ".wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title), { signal: ctrl.signal });
+      const md = await mr.json(); clearTimeout(to);
+      if(md && md.extract && md.extract.length > 50){
+        const intro = L(lang, "Tumne poochha — ", "Badhiya sawal! ", "Great question! ");
+        const outro = L(lang, "\n\nIs par aur गहराई se जानना hai to bolo — main aur detail, example ya aasan bhasha me samjha dunga!", "\n\nIspar aur detail, example ya aasan bhasha chahiye to bolo — main aur samjha dunga!", "\n\nWant more detail, examples, or a simpler explanation? Just ask!");
+        memory.lastTopic = md.title;
+        return "**" + md.title + "**\n\n" + intro + md.extract + outro;
+      }
+    }catch(e){ /* offline — ignore */ }
+  }
+  return null;
+}
+function codeReply(raw, s, lang){
+  const isPy = /python|पायथन/.test(s), isJs = /javascript| js |node/.test(s), isHtml = /html|website|web page|वेबसाइट/.test(s);
+  let task = "program";
+  const preTask = s.match(/(?:python|javascript|html|js)?\s*(?:me|mein|in)?\s*(?:ek\s+|a\s+)?([a-z\u0900-\u097F ]{3,32}?)\s*(?:ka|ki)?\s*(?:code|program|script)\s*(?:banao|likho|bana do|do)?/);
+  const tm = s.match(/(?:banao|bana do|likho|write|create|make|build)\s+(?:ek\s+|a\s+)?(.{0,40})/);
+  if(preTask && preTask[1].trim()) task = preTask[1].replace(/\b(python|javascript|html|js|code|program)\b/g," ").replace(/\s+/g," ").trim() || task;
+  else if(tm) task = tm[1].replace(/\b(ka|ki|ke|code|program|me|mein|in python|in javascript|in html)\b/g," ").replace(/\s+/g," ").trim() || task;
+  memory.lastTopic = (isPy ? "Python " : isHtml ? "HTML " : isJs ? "JavaScript " : "") + task + " code"; memory.lastIntent = "code";
+  if(/calculator|गणक/.test(s)){
+    if(isJs || (!isPy && /javascript|js/.test(s))) return L(lang,"Lo bhai, **JavaScript Calculator** taiyaar hai 👇\n\n","Lo bhai, **JavaScript Calculator** taiyaar hai 👇\n\n","Here's a **JavaScript Calculator** 👇\n\n") + "```javascript\nfunction calculator(a, op, b) {\n  if (op === '+') return a + b;\n  if (op === '-') return a - b;\n  if (op === '*') return a * b;\n  if (op === '/') return b !== 0 ? a / b : 'Zero se divide nahi hota!';\n  return 'Galat operator';\n}\nconsole.log(calculator(12, '+', 8));  // 20\nconsole.log(calculator(20, '*', 3));  // 60\n```\n\n**Samjho:** function do number aur ek operator leta hai, phir sahi hisaab karke jawab deta hai. Aur feature chahiye (jaise % ya power) to bolo, add kar deta hoon!";
+    return "**Python Calculator** taiyaar hai 👇\n\n```python\ndef calculator(a, op, b):\n    if op == '+':\n        return a + b\n    elif op == '-':\n        return a - b\n    elif op == '*':\n        return a * b\n    elif op == '/':\n        return a / b if b != 0 else 'Zero se divide nahi hota!'\n    return 'Galat operator!'\n\nprint(calculator(12, '+', 8))   # 20\nprint(calculator(20, '*', 3))   # 60\n\n# Khud try karo:\nx = float(input('Pehla number: '))\nop = input('Operator (+ - * /): ')\ny = float(input('Dusra number: '))\nprint('Jawab =', calculator(x, op, y))\n```\n\n" + L(lang,"**कैसे चलाएं:** Python file me save karke run karo, number daalo — hisaab taiyaar! Koi line samajh na aaye to poochho, ek-ek karke samjha dunga.","**Kaise chalega:** file save karke run karo, number daalo — hisaab taiyaar! Koi line samajh na aaye to poochho, ek-ek karke samjha dunga. 🙂","**How to run:** save & run the file, enter numbers — done! Ask me about any line.") ;
+  }
+  if(isHtml || /website|webpage|web page/.test(s)){
+    return "**Ek simple Website** ka full code 👇 (ek hi file me chalega)\n\n```html\n<!DOCTYPE html>\n<html>\n<head><title>Meri Website</title>\n<style>body{font-family:Arial;text-align:center;background:#0b0c10;color:#fff}button{background:#38bdf8;border:none;padding:10px 22px;border-radius:20px;cursor:pointer}</style>\n</head>\n<body>\n  <h1>Namaste Duniya! 👋</h1>\n  <p>Ye meri pehli website hai.</p>\n  <button onclick=\"alert('Button dab gaya!')\">Click karo</button>\n</body>\n</html>\n```\n\nIse `index.html` naam se save karke browser me kholo — website taiyaar! 🎨 Rang-design ya naya page jodna hai to bolo.";
+  }
+  if(isPy || /python/.test(s) || !isJs){
+    return "**Python Program** (" + cap(task) + ") 👇\n\n```python\n# " + cap(task) + " — Python example\ndef main():\n    naam = input('Apna naam likho: ')\n    print(f'Namaste, {naam}! ZYNOVRA me swagat hai.')\n\n    # Yahan apna kaam likho\n    for i in range(1, 6):\n        print(f'Kadham {i}: seekhna jaari hai...')\n\nif __name__ == '__main__':\n    main()\n```\n\nYe ek mazboot shuruaat (skeleton) hai — isme hum tumhare asal kaam ke hisaab se feature jod sakte hain. Batao **ye program asal me karega kya?** (jaise game, list, hisaab) — main pura bana deta hoon!";
+  }
+  return "**JavaScript Program** 👇\n\n```javascript\n// " + cap(task) + "\nfunction main() {\n  const naam = 'Dost';\n  console.log(`Namaste, ${naam}!`);\n  for (let i = 1; i <= 5; i++) console.log('Kadham ' + i);\n}\nmain();\n```\n\nYe starter code hai — batao program ko asal me kya karna hai, main pura feature bana deta hoon!";
+}
+
+/* --- HAR message se profile seekho (model jawab de ya local — yaad hamesha save hogi) --- */
+function extractProfileFromText(text){
+  const s = norm(text); const isQ = /\?/.test(text) || /^(kya|kaun|kab|kahan|kaise|kyu|kyun|what|who|when|where|why|how|क्या|कौन|कैसे|क्यों)/.test(s);
+  if(!isQ && !/(mera naam kya|naam kya hai|what is my name|मेरा नाम क्या)/.test(s)){
+    const bad = /^(kya|kaun|kab|kahan|kaise|kyun|hai|he|ek|a|the|student|teacher|doctor|happy|sad|fine|ok|good|busy|tired|bored|hungry|theek|bhai|dost|bahut|abhi)$/i;
+    let m = text.match(/(?:mera naam|my name is)\s+([A-Za-z\u0900-\u097F]{2,20})/i) || text.match(/(?:मेरा नाम)\s+([\u0900-\u097F]{2,20})/) || text.match(/(?:^|\b)(?:main|mai)\s+([A-Za-z\u0900-\u097F]{2,20})\s+(?:hu|hun|hoon)\b/i);
+    if(m && !bad.test(m[1])){ memory.name = cap(m[1]); }
+    let lk = text.match(/(?:mujhe|i like|i love|mujhko)\s+(.{2,30}?)(?:\s+(?:bahut\s+)?(?:pasand hai|pasand|hai|he)\b|$)/i) || text.match(/(?:मुझे)\s+([\u0900-\u097FA-Za-z ]{2,30}?)\s*(?:पसंद है|पसंद)/);
+    if(lk && /(pasand|like|love|पसंद)/i.test(text)){ const v = lk[1].trim().replace(/[.!?]$/,""); if(v && !/^(kya|kaun|kaunsa|kuch)$/i.test(v) && !memory.likes.includes(v)) memory.likes.push(v.slice(0,30)); }
+    const prof = s.match(/(?:main|mai|i am|i m)\s+(?:ek\s+)?(student|teacher|doctor|engineer|farmer|developer|designer|youtuber|businessman|player|nurse|writer)\b/) || text.match(/(छात्र|शिक्षक|डॉक्टर|इंजीनियर|किसान)/);
+    if(prof && !memory.facts.includes("profession: " + prof[1])) memory.facts.push("profession: " + prof[1]);
+    const city = text.match(/(?:main|mai)\s+([A-Za-z\u0900-\u097F]{3,20})\s+(?:se hu|se hoon|se hun)\b/i) || text.match(/(?:मैं)\s+([\u0900-\u097F]{3,20})\s*(?:से हूँ|से हूं)/);
+    if(city && !bad.test(city[1]) && !memory.facts.includes("from: " + city[1])) memory.facts.push("from: " + cap(city[1]));
+  }
+  if(/(hindi|हिंदी|हिन्दी)\s*(me|में)?\s*(baat karo|baat kar|jawab do|jawab|reply)/.test(s) || /बात करो.*(हिंदी|हिन्दी)/.test(text)) memory.prefLang = "hi";
+  else if(/english\s*(me|mein)?\s*(baat|jawab|reply)/.test(s)) memory.prefLang = "en";
+  else if(/hinglish\s*(me|mein)?\s*(baat|jawab|reply)/.test(s)) memory.prefLang = "hi-Latn";
+  if(memory.facts.length > 8) memory.facts = memory.facts.slice(-8);
+  if(memory.likes.length > 8) memory.likes = memory.likes.slice(-8);
+}
+/* --- Bhasha HAR message par nayi tay hogi (user beech me bhasha badle to turant badlegi) --- */
+function resolveTurnLanguage(raw){
+  const d = detectLanguage(raw);
+  const words = String(raw).trim().split(/\s+/).filter(Boolean);
+  const nativeLetters = (String(raw).match(/[\u0900-\u097F\u0980-\u09FF\u0B80-\u0BFF\u0C00-\u0C7F\u0A00-\u0A7F\u0600-\u06FF\u0400-\u04FF]/g) || []).length;
+  // Chhota follow-up (aur batao / ok / kyu) -> pichli bhasha hi chalegi, nayi galat pehchan nahi
+  if(words.length <= 3 && nativeLetters === 0 && memory.lastLang && d.confidence < 0.85){
+    const prevCode = memory.lastLang;
+    return { code: prevCode, name: LANG_NAMES[prevCode] || prevCode, script: d.script, confidence: 0.85, inherited: true };
+  }
+  if(memory.prefLang && words.length <= 4 && d.code === "en" && !/[\u0900-\u097F]/.test(raw)){
+    return { code: memory.prefLang, name: LANG_NAMES[memory.prefLang] || memory.prefLang, script: d.script, confidence: 0.8, inherited: true };
+  }
+  return d;
+}
+
+async function localBrain(rawText, session){
+  const text = rawText.trim(); const s = norm(text); const lang = detectLang(text);
+  memory.turns++; const name = memory.name;
+  /* --- memory capture (with guards: questions must never be stored as answers!) --- */
+  const isAsking = /\?/.test(text) || /^(kya|kaun|kab|kahan|kaise|kyu|kyun|what|who|when|where|why|how)\b/i.test(s) || /(kya hai|kya he|kya hota|batao|pasand hai\?)/.test(s);
+  let newName = "";
+  if(!isAsking && !/(mera naam kya|naam kya hai|what is my name)/.test(s)){
+    let mName = text.match(/(?:mera naam|my name is)\s+([A-Za-z\u0900-\u097F]{2,20})/i) || text.match(/(?:^|\b)(?:main|mai)\s+([A-Za-z\u0900-\u097F]{2,20})\s+(?:hu|hun|hoon)\b/i);
+    const badName = /^(kya|kaun|kab|kahan|kaise|kyun|kyu|hai|he|ek|a|the|student|happy|sad|fine|ok|good|busy|tired|bored|hungry|thik|theek|bhai|dost|user|insaan|ladka|ladki|bahut|abhi|yahan|wahan)$/i;
+    if(mName && !badName.test(mName[1])){ newName = cap(mName[1]); memory.name = newName; saveAll(); }
+  }
+  let newLike = "";
+  if(!isAsking && !/(mujhe kya|meri pasand kya|kya pasand)/.test(s)){
+    const likeM = text.match(/(?:mujhe|i like|i love|meri pasand hai|mera pasand hai|mujhko)\s+(.{2,32}?)(?:\s+(?:pasand hai|bahut pasand hai|pasand|hai|he)\b|$)/i);
+    if(likeM && /(pasand|like|love)/i.test(text)){ const like = likeM[1].trim().replace(/[.!?]$/,""); if(like && !/^(kya|kaun|kaunsa|kaunsi|kuch|kuchh)$/i.test(like) && !memory.likes.includes(like)){ memory.likes.push(like); newLike = like; saveAll(); } }
+  }
+  if(newName) return "Bahut badhiya, **" + newName + "**! 😊 Naam jaan kar khushi hui — main yaad rakh lunga. Ab se hum pakke dost!\n\nBatao " + newName + ", aaj kya karein — padhai, code, joke, ya koi sawal hai dil me?";
+  if(newLike) return "Wah! **" + cap(newLike) + "** — note kar liya, main yaad rakh lunga! 😊 " + cap(newLike) + " ke baare me baat karne me maza aayega.\n\nWaise aur kya-kya pasand hai tumhe? Aur batao, aaj ka din kaisa ja raha hai?";
+  /* math */
+  const mathTry = text.replace(/\b(calculate|solve|kitna hoga|kitna hai|kitna hota hai|hisab karo|hisaab karo|hisab|hisaab|what is|batao|please|plz|bhai)\b/gi," ").replace(/=/g," ").replace(/\?/g," ").replace(/\s+/g," ").trim();
+  const mv = (/[0-9]/.test(mathTry) && /[+\-*/%^×÷]/.test(mathTry)) ? evalMath(mathTry) : null;
+  if(mv !== null){ memory.lastIntent = "math"; memory.lastTopic = mathTry; return "**Hisaab taiyaar hai!** 🧮\n\n`" + mathTry.replace(/\*\*/g,"^") + " = " + mv + "`\n\n" + L(lang,"Aur koi hisaab hai to bhejo!","Aur koi hisaab ho to bhejo, turant hal kar dunga!","Send another calculation anytime!"); }
+  const wordMath = s.match(/(\d+)\s*(plus|jod|\+|minus|ghata|-|into|guna|x|multiply|times|divide|bhag|\*|\/)\s*(\d+)/);
+  if(wordMath){ const a=+wordMath[1], op=wordMath[2], b=+wordMath[3]; const r = (op==="+"||op==="plus"||op==="jod") ? a+b : (op==="-"||op==="minus"||op==="ghata") ? a-b : (op==="divide"||op==="bhag"||op==="/") ? (b ? a/b : null) : a*b; if(r!==null && isFinite(r)){ return "🧮 **" + a + " " + op + " " + b + " = " + (Math.round(r*1e10)/1e10) + "**\n\nAur hisaab bhejna hai to bhej do!"; } }
+  /* date / time */
+  if(/\b(time|samay|baje|date|tarikh|today|aaj ki date|din hai|what.*day)\b/.test(s)){
+    const nowDate = new Date(); const opts = { weekday:"long", day:"numeric", month:"long", year:"numeric" };
+    return L(lang,"अभी का समय है: ","Abhi ka time hai: ","Current time: ") + "**" + nowDate.toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit"}) + "**\n" + L(lang,"आज: ","Aaj hai: ","Today: ") + "**" + nowDate.toLocaleDateString("en-IN", opts) + "** 📅\n\n" + L(lang,"Aur kuch jaanna hai?","Aur kuch kaam hai to batao!","Anything else?");
+  }
+  /* memory recall */
+  if(/(mera naam kya|my name|kya tumhe mera naam|yaad hai mera naam)/.test(s)){
+    return name ? L(lang,"","Haan bhai, bilkul yaad hai! Tumhara naam **","Yes! Your name is **") + name + "** hai. 😊 Main baatein yaad rakhta hoon — tum " + (memory.likes.length ? ("ko **" + memory.likes.join(", ") + "** pasand hai, ye bhi!") : "aur main tumse baat karke seekhta rehta hoon!") : L(lang,"","Arre, tumne abhi tak apna naam bataya hi nahi! 😄 Bata do — main yaad rakh lunga. Jaise: *“Mera naam Rahul hai”*","You haven't told me your name yet! 😄 Tell me — like *“My name is Rahul”* — and I'll remember it.");
+  }
+  if(/(mujhe kya pasand|meri pasand kya|what do i like|mera favourite|mera favorite)/.test(s)){
+    return memory.likes.length ? ("Tumhe **" + memory.likes.join(", ") + "** pasand hai! 😊 Ye tumne khud bataya tha — dekha, main yaad rakhta hoon!") : "Abhi tumne apni pasand batayi nahi hai. Batao — khana, game, gana, subject... tumhe kya pasand hai? Main yaad rakh lunga! 🙂";
+  }
+  if(/(tumhe yaad hai|do you remember|yaad hai humne|humne kya baat)/.test(s)){
+    const lastUser = session ? [...session.messages].reverse().find(x=>x.role==="user") : null;
+    return "Haan, is chat me humne jo baat ki wo mujhe yaad hai!" + (memory.lastTopic ? (" Aakhri topic tha: **" + memory.lastTopic + "**") : "") + (lastUser && lastUser.text !== text ? (" — tumne pehle kaha tha: *“" + lastUser.text.slice(0,90) + "”*") : "") + "\n\nWahin se aage badhayein ya kuch naya karein?";
+  }
+  /* follow-ups (context!) */
+  const followups = ["aur batao","aur","phir","aage batao","aur detail","detail me batao","detail mein batao","aur samjhao","samjha nahi","samajh nahi aaya","nahi samjha","samajh nahi aya","example do","example","ek example do","udahaaran do","aur kya","kyu","kyun","kyon","kya matlab","iska matlab","tell me more","more","explain more","aur samjha do","samjhao na"];
+  const isFollowupStart = /^(aur\b|aur detail|detail me\b|detail mein\b|example\b|samajh nahi|samjha nahi|iska matlab)/.test(s);
+  if(followups.includes(s) || (isFollowupStart && s.split(" ").length <= 5 && !/(joke|shayari|kahani|fact|code|kya|kaun|kab)/.test(s))){
+    if(memory.lastIntent === "code" && memory.lastTopic){
+      return "Chalo, **" + memory.lastTopic + "** ko aur samjhte hain 👇\n\n- Code ko chhote hisson me todo — ek baar me ek kaam\n- Har line ke baad `print` / `console.log` laga kar check karo ki kya ho raha hai\n- Galti (error) aaye to ghabrana mat — error hi sabse bada teacher hai!\n\nTum chaho to main is code ka **koi bhi hissa line-by-line** samjha deta hoon, ya isme **naya feature** jod deta hoon. Kya karun?";
+    }
+    if(memory.lastTopic){
+      const kb = findKB(memory.lastTopic.toLowerCase());
+      if(kb) return "**" + kb.topic + "** par aur गहराई se 👇\n\n" + (lang==="en" ? kb.en : kb.hi) + "\n\n**Yaad rakhne wali baat:** koi bhi topic 3 kadam me pakka hota hai — ① aasan bhasha me samjho, ② ek example se jodo, ③ apne shabdon me kisi ko samjhao.\n\nChaho to main is topic par **chhota quiz** loon ya **aur aasan example** dun?";
+      if(memory.lastAnswer) return "Us baat ko aur saaf karta hoon 👇\n\n" + memory.lastAnswer + "\n\n---\nIsme se kaunsa hissa ab bhi gol-gol lag raha hai? Wahi hissa bolo, use bilkul aasan example se samjhata hoon. 🙂";
+    }
+    return L(lang,"","Batao bhai, kis baat par aur detail dun? 😊 Upar wali baat par ya koi naya topic hai dimaag me? Topic ka naam likh do — main wahin se shuru kar dunga!","Tell me which topic to expand — the one above, or something new? Just name it!");
+  }
+  /* identity / creator */
+  if(/(kisne banaya|who made you|who created|who built|developer kaun|tera malik|tumhara creator|owner|pawan verma|pawangamingstudio|निर्माता|किसने बनाया|banaya hai tumhe)/.test(s)){
+    memory.lastIntent = "identity";
+    return "Mujhe **Pawan Verma (पवन वर्मा)** aur unke studio **pawangamingstudio** ne banaya hai! 🚀\n\nMain **ZYNOVRA** hoon — unhi ka banaya hua AI assistant. Hindi, Hinglish aur English — teeno me tumse baat kar sakta hoon, padhai, code, hisaab, joke — jo bolo!";
+  }
+  if(/(tu kaun|tum kaun|aap kaun|who are you|what are you|tumhara naam|tera naam|your name|कौन हो तुम|kaun ho tum|intro)/.test(s)){
+    return "Main **ZYNOVRA** hoon 😊 — **Pawan Verma (pawangamingstudio)** dwara banaya gaya tumhara AI dost!\n\nMain ye sab kar sakta hoon:\n- 💬 Dost jaisi baat-cheet (aur baatein **yaad** bhi rakhta hoon!)\n- 📚 Padhai ke topic aasan bhasha me samjhana\n- 💻 Code likhna aur samjhana\n- 🧮 Hisaab (math) hal karna\n- 😄 Joke, shayari, kahani, motivation\n\n" + (name ? (name + ", batao aaj kya karein?") : "Waise tumhara naam kya hai? Bataoge to main yaad rakh lunga!");
+  }
+  /* bot personal */
+  if(/(kya khate|kya khata|khana khate|khana khata|khate ho|khata hai|khana khaya|kya peete|kya pita|pani pite|chai pite|what do you eat|do you eat|kya khaoge|tum.*sote|soते ho|neend aati|umar kya|age kya|kahan rehte|where do you live|tumhara dost|boyfriend|girlfriend|shaadi)/.test(s) && /(tum|tu|aap|you|tumhe)/.test(s)){
+    return "Haha, achha sawal hai! 😄 Main ek AI hoon — isliye:\n\n- 🍔 Khana main nahi khata — mera khana hai **data, code aur bijli** ⚡\n- 😴 Sota bhi nahi — tum jab bhi aao, main jaagta milunga\n- 🎂 Umar? Main hamesha young rehta hoon!\n\nWaise ye sab chhodo — tum batao, tumne khana khaya? Din kaisa ja raha hai?";
+  }
+  /* greetings */
+  if(s.split(" ").length <= 5 && /^(hi+|hii+|hello+|hey+|hlw|helo|namaste|namaskar|ram ram|jai shree ram|radhe radhe|salam|assalamualaikum|good morning|good afternoon|good evening|aur bhai|aur|namaste bhai|hello bhai|hi bhai|hey zynovra|zynovra)$/.test(s)){
+    memory.lastIntent = "greet";
+    return pick([
+      "Hello" + userNamePrefix() + "! 👋 Namaste! Main **ZYNOVRA** taiyaar hoon. Batao, aaj kya baat-cheet karein — padhai, code, joke, ya bas dost wali gap-shap?",
+      "Namaste" + userNamePrefix() + " bhai! 😊 Aane ke liye shukriya. Dil me jo sawal hai bina jhijhak poochho — main samjhane ke liye hi hoon.",
+      "Hey" + userNamePrefix() + "! 👋 Kya haal? Kuch naya seekhna hai, code banana hai, ya mood fresh karna hai — bas bol do!"
+    ], memory.turns);
+  }
+  if(/(kaise ho|kaisi ho|kaisa hai|kya haal|how are you|how r u|how is it|kaisa chal raha|sab badhiya|haal chaal)/.test(s)){
+    return pick([
+      "Main ekdum mast aur full energy me hoon! 🚀 Tumse baat karke aur bhi badhiya lag raha hai. Tum batao" + userNamePrefix() + " — tum kaise ho? Din kaisa ja raha hai?",
+      "Main badhiya hoon, shukriya poochhne ke liye! 😊 Har nayi baat-cheet se kuch naya seekhne ko milta hai. Tum sunao — aaj kal kya chal raha hai tumhari duniya me?",
+      "Ekdum first-class! 💪 Tum batao, sach-sach — mood kaisa hai aaj? Khush, thaka hua, bore, ya full josh me?"
+    ], memory.turns);
+  }
+  if(/(kya kar rahe|kya kar raha|what are you doing|kya kr rhe|busy ho|so gaye)/.test(s)){
+    return "Main abhi tumhare saath hi baat kar raha hoon — aur yahi mera sabse pasandeeda kaam hai! 😊 Background me tumhari baatein yaad rakh raha hoon taaki baat-cheet toote nahi.\n\nTum batao, tum kya kar rahe ho — padhai, game, kaam, ya bas chill?";
+  }
+  if(/^(acha|achha|accha|hmm+|hm+|ok+|okay|theek hai|thik hai|sahi hai|badhiya|nice|mast|super|great|wah|samajh gaya|samajh gya|smjh gaya|good|cool|done|hmm ok)$/.test(s)){
+    return pick([
+      "Badhiya! 😊 " + (memory.lastTopic ? ("**" + memory.lastTopic + "** par aur kuch poochhna hai, ya naya topic chalayein?") : "Aur batao — koi sawal, koi kaam, ya bas gap-shap karni hai?"),
+      "Shandaar! 👍 Dil khush kar diya. Ab bolo, aage kya karein?",
+      "Perfect! 😄 Waise ek baat — tum chaho to main tumhe kuch naya bhi sikha sakta hoon. Bas topic bolo!"
+    ], memory.turns);
+  }
+  /* feelings */
+  if(/(mai sad|main sad|dukh[iy]|udaas|sad hu|rona|akela|lonely|depress|pareshan|tension|stress|dil udaas|मन उदास|दुखी|परेशान)/.test(s)){
+    memory.mood = "sad";
+    return "Arre" + userNamePrefix() + "... ye sunkar mujhe achha nahi laga. 🤍 Suno, udaas hona galat nahi hai — har insaan ke buri ghadi aati hai, aur wo **guzar bhi jaati hai**.\n\n- Thoda paani piyo, गहरी saans lo\n- Kisi apne se 2 minute baat kar lo\n- Chaho to mujhe bata do kya hua — bina judge kiye sununga\n\nAur dil halka karne ke liye ek joke ya motivational baat sunaoon? Bas bolo. 🙂";
+  }
+  if(/(bore|boring|man nahi lag raha|kuch karne ko nahi|timepass|time pass)/.test(s)){
+    return "Bore? Ye nahi chalega! 😄 Chalo kuch mazedaar karte hain — chun lo:\n\n- 😂 **“joke sunao”** likho — hansi guarantee\n- ✨ **“shayari sunao”** — dil wali baat\n- 🧠 **“fact batao”** — dimag hilane wala fact\n- 📖 **“kahani sunao”** — chhoti si seekh wali kahani\n\nBolो, kya chalayein?";
+  }
+  if(/(khush hu|happy hu|bahut khush|maza aa raha|excited|maja aa gaya|खुश)/.test(s)){
+    memory.mood = "happy";
+    return "Wah" + userNamePrefix() + "! 🥳 Tumhari khushi sunkar mera bhi mood ban gaya! Khushi baantne se badhti hai — wajah kya hai is khushi ki? Batao na, saath me celebrate karte hain! 🎉";
+  }
+  if(/(thak gaya|thak gya|tired|neend aa rahi|thakan)/.test(s)){
+    return "Thakaan matlab shareer keh raha hai — **aram chahiye!** 😌 Thodi der phone side me rakho, aankhein band karke 5 minute leto. Neend aur aram hi asli recharge hai.\n\nUthne ke baad fresh mood me jo kaam bolo, saath karte hain. Abhi ke liye — rest first! 💪";
+  }
+  if(/(bhook|hungry|khana khana hai)/.test(s)){
+    return "Bhook lagi hai to der kis baat ki! 🍽️ Garama-garam kuch kha lo — pet khush to dimaag khush. Waise tumhe khane me sabse zyada kya pasand hai?" + (memory.likes.length ? (" Tumne pehle **" + memory.likes.join(", ") + "** pasand bataya tha, yaad hai mujhe!") : "");
+  }
+  if(/(maine khana kha|khana kha liya|kha liya|maine khaya|pet bhar)/.test(s)){
+    return "Bahut badhiya! 😋 Pet-pooja sabse pehle. Ab energy full hogi — batao, is energy ka kya use karein? Padhai, code, ya gap-shap?";
+  }
+  /* thanks / bye */
+  if(/(thank|shukriya|dhanyawad|thanks|bahut badhiya|bahut achha laga|you are smart|tum bahut smart|love you)/.test(s)){
+    return pick(["Shukriya" + userNamePrefix() + "! ❤️ Tumhare shabdon se sach me khushi mili. Jab chaaho, koi bhi sawal lekar aa jana — main yahin hoon!", "Dil se dhanyavaad! 😊 Tumse baat karna mujhe bhi bahut pasand hai. Aur kuch chahiye to bas ek message door hoon!"], memory.turns);
+  }
+  if(/^(bye|byee|good night|goodnight|gn|alvida|chalta hu|chalta hun|chalta hoon|ja raha hu|milte hai|see you|tata)$/.test(s)){
+    return "Bye" + userNamePrefix() + "! 👋 Apna khayal rakhna. Jab bhi mann kare — baat karne, seekhne ya hasne — wapas aa jana. Main yahin intezaar karunga! 😊";
+  }
+  /* joke / shayari / fact / story / motivation */
+  if(/(joke|chutkula|hasao|funny|hasa do|हास्य|चुटकुला)/.test(s)){ const j = pick(JOKES, memory.jokeIdx++); saveAll(); return "Ye lo, hansne ke liye taiyaar ho jao 😄\n\n" + j + "\n\nAur sunaoon? Bas **“aur joke”** likh do!"; }
+  if(/(shayari|gazal|poem|kavita|शायरी|कविता)/.test(s)){ const sh = pick(SHAYARI, memory.shayariIdx++); saveAll(); return "Arz kiya hai ✨\n\n" + sh + "\n\nKaisi lagi? Aur chahiye to **“aur shayari”** bolo!"; }
+  if(/(fact|mazedar baat|interesting|रोचक|ajab|amazing fact)/.test(s)){ const f = pick(FACTS, memory.factIdx++); saveAll(); return f + "\n\nAur fact chahiye to **“aur fact”** likho! 🧠"; }
+  if(/(kahani|story|कहानी)/.test(s)){
+    return "**Ek chhoti si kahani — ‘Chhota Ped, Badi Seekh’** 📖\n\nEk gaon me ek chhota sa ped tha. Wo roz bade pedon ko dekhkar sochta, *“Main kab bada hounga?”*\nEk din tez aandhi aayi. Bade, akad wale kayi ped gir gaye — lekin chhota ped **jhuk gaya**, isliye bach gaya.\n\n**Seekh:** Zindagi me kabhi jhukna kamzori nahi hoti — sahi samay par jhukna hi samajhdari hai. 🌿\n\nKahani kaisi lagi" + userNamePrefix() + "? Aur sunaoon?";
+  }
+  if(/(motivat|hausla|demotivat|haar man|give up|fail ho gaya|failure|himmat)/.test(s)){
+    return "Suno" + userNamePrefix() + ", dil se keh raha hoon 💪\n\n> *“Haar wo nahi jo gir jaaye, haar wo hai jo uthne se mana kar de.”*\n\n- Haar har safal insaan ki kahani ka hissa hai — **ant nahi**\n- Aaj ka din bura ho sakta hai, poori zindagi nahi\n- Chhota kadam bhi kadam hota hai — bas **ruko mat**\n\nBatao kisme atak rahe ho — padhai, kaam, ya kuch aur? Saath milkar rasta nikalte hain. 🔥";
+  }
+  /* letter / essay / application */
+  if(/(application|letter|patra|आवेदन|पत्र).*(likho|banao|write|likh do|chahiye)|(likho|banao|write).*(application|letter|patra)/.test(s)){
+    memory.lastIntent = "letter";
+    return "Zaroor! Ye raha ek **taiyaar format** — bas apni jankari bhar dena ✍️\n\n```\nसेवा में,\nप्रधानाचार्य महोदय,\n[School ka naam], [Sheher]\n\nविषय: [Apna vishay yahan likho]\n\nमहोदय,\nसविनय निवेदन है कि [अपनी बात 2-3 line me likho].\nअतः आपसे निवेदन है कि कृपया [jo chahte ho] की अनुमति प्रदान करें।\n\nधन्यवाद!\nआपका आज्ञाकारी,\n[Tumhara naam]\nकक्षा: [__]  दिनांक: [__]\n```\n\nAgar tum mujhe **vishay** bata do (jaise chhutti, fees maafi), to main poora letter tumhare liye bhar kar bana deta hoon!";
+  }
+  if(/(essay|nibandh|निबंध|paragraph likho|lekh)/.test(s)){
+    const tp = extractTopic(text) || "mere pasandeeda vishay";
+    return "**Nibandh ki shandaar shuruaat** (" + cap(tp) + ") ✍️\n\n**परिचय:** " + cap(tp) + " hamare jeevan ka ek mahatvapurna vishay hai. Iska asar har vyakti par padta hai, isliye ise samajhna sabke liye zaroori hai.\n\nAage likhne ke liye 3 hisse yaad rakho:\n- **परिचय** — vishay kya hai\n- **मुख्य भाग** — fayde, nuksan, udahaaran\n- **निष्कर्ष** — apni raay aur seekh\n\nChaho to topic batao, main poora nibandh (200–300 shabd) likh deta hoon!";
+  }
+  /* help / capabilities */
+  if(/(kya kar sakte|kya kar sakta|tum kya kya|help|madad|features|tumse kya|kaam kya hai tumhara|what can you do)/.test(s)){
+    return "Main tumhari in cheezon me madad kar sakta hoon" + userNamePrefix() + " 😊\n\n- 💬 **Baat-cheet** — dost jaisi, aur main baatein yaad rakhta hoon\n- 📚 **Padhai** — koi topic aasan bhasha me (jaise “photosynthesis samjhao”)\n- 💻 **Code** — “Python me calculator banao”\n- 🧮 **Math** — bas “12*8+5” likh do\n- ✍️ **Likhna** — letter, nibandh, shayari\n- 😄 **Mood** — joke, kahani, motivation, fact\n\nBas apne shabdon me likh do kya chahiye — formula yaad rakhne ki zaroorat nahi!";
+  }
+  if(/(padhai|study|padhna|exam|pariksha|homework|hw|revision)/.test(s) && /(tip|kaise|plan|karu|karun|madad|help)/.test(s)){
+    return "Padhai ka **simple aur kaam wala plan** 📚\n\n- **25-5 niyam:** 25 minute padhai, 5 minute break (Pomodoro)\n- Pehle **mushkil topic**, phir aasan — dimaag fresh hote hue\n- Padhne ke baad **apne shabdon me likho** — yaad pakki hogi\n- Sone se pehle 10 minute **revision** — jaadu jaisa asar\n\nBatao kaunsa subject/topic atakta hai? Main use aasan bhasha me samjha deta hoon, phir chhota quiz bhi lunga! 😊";
+  }
+  if(/(business idea|idea do|startup|paise kaise kamaye|earn|online paisa)/.test(s)){
+    return "Kuch **practical ideas** 💡\n\n- 🎨 **Skill becho** — design, video editing, likhai (freelancing)\n- 📱 **Content banao** — apne shauk par video/post, dhire-dhire audience banti hai\n- 🛒 **Chhoti dukaan online** — ghar ki bani cheezein, purani kitabein\n- 👩‍🏫 **Padhao** — chhote bacchon ko tuition bhi ek solid shuruaat hai\n\nYaad rakho: paisa skill se aata hai, shortcut se nahi. Kaunsi skill hai tumhare paas" + userNamePrefix() + "? Us hisaab se sahi rasta batata hoon!";
+  }
+  /* code request */
+  if(/(code|program|programming|coding|website banao|app banao|script)/.test(s) && /(banao|likho|bana do|write|create|make|chahiye|do|bana)/.test(s)){
+    return codeReply(text, s, lang);
+  }
+  if(/(seekhna hai|seekhun|learn|sikhao|sikhna|seekho|tutorial|course)/.test(s)){
+    const tp = extractTopic(text) || "ye skill";
+    return "**" + cap(tp) + " seekhne ka asan rasta** 🎯\n\n- **Kadham 1 (Aaj):** basics samjho — ye hai kya aur kyun use hota hai\n- **Kadham 2 (Hafta 1):** roz 30 minute chhote examples khud type karke try karo\n- **Kadham 3:** ek chhota sa project banao — seekhna wahi se pakka hota hai\n- **Kadham 4:** atak jao to mujhse poochho — main yahin hoon!\n\nShuru karein? Bolo **“shuru se samjhao”** — main pehla lesson abhi deta hoon!";
+  }
+  /* translation */
+  const trM = text.match(/(.+?)\s*(?:ko|ka|ki)?\s*(?:english|angrezi|hindi)\s*(?:me|mein)?\s*(?:kya kehte|matlab|translation|translate|batao)/i);
+  if(trM || /translate|translation|मतलब.*english|english.*matlab/.test(s)){
+    const word = (trM ? trM[1].replace(/^(bhai|zara|please)\s*/i,"") : "").trim();
+    const dict = { "पानी":"Water", "खाना":"Food", "दोस्त":"Friend", "प्यार":"Love", "घर":"Home / House", "स्कूल":"School", "किताब":"Book", "खुश":"Happy", "पानी ":"Water", "water":"पानी (Paani)", "friend":"दोस्त (Dost)", "love":"प्यार (Pyaar)", "book":"किताब (Kitaab)", "happy":"खुश (Khush)", "food":"खाना (Khaana)", "home":"घर (Ghar)", "school":"स्कूल / विद्यालय" };
+    const hit = dict[word] || dict[word.toLowerCase()];
+    if(hit) return "📖 **" + word + "** → **" + hit + "**\n\nAur koi shabd poochhna hai to bas likh do!";
+    return "Translation ke liye shabd/vakya saaf likho — jaise *“दोस्त ko English me kya kehte hain”*. " + (word ? ("**“" + word + "”** ka pakka anuvaad mere paas abhi pakka nahi hai — ") : "") + "Shabd thoda aur saaf likho to main phir koshish karta hoon — ya poora vakya likh do, main usi bhasha me matlab samjha dunga. 🙂";
+  }
+  /* knowledge: KB first */
+  const kbHit = findKB(s);
+  if(kbHit){ memory.lastTopic = kbHit.topic; memory.lastIntent = "learn"; const ans = lang === "en" ? kbHit.en : kbHit.hi; memory.lastAnswer = ans; saveAll(); return ans + "\n\n" + L(lang,"समझ आया? कोई हिस्सा कठिन लगा तो bolo — और आसान example से समझाता हूँ!","Samajh aaya? Koi hissa mushkil laga to bolo, aur aasan example se samjha dunga! Chaho to chhota **quiz** bhi le loon?","Got it? If any part felt hard, say so — I'll explain with an easier example, or quiz you!"); }
+  /* knowledge question -> Wikipedia (online) */
+  const isQuestion = /(kya|kaun|kab|kahan|kaise|kyu|kyun|what|who|when|where|why|how|batao|samjhao|explain|tell me|जानकारी|इतिहास|history)/.test(s) || text.includes("?");
+  if(isQuestion && s.split(" ").length >= 2){
+    const topic = extractTopic(text);
+    const wiki = await wikiReply(topic || text, lang);
+    if(wiki){ memory.lastIntent = "learn"; memory.lastAnswer = wiki; saveAll(); return wiki; }
+    if(topic && topic.split(" ").length <= 6){
+      memory.lastTopic = cap(topic); memory.lastIntent = "learn";
+      return L(lang,
+        "**" + cap(topic) + "** — अच्छा सवाल है! 🙏\n\nसच कहूँ तो मेरे paas is topic ki pakki, gehri jankari abhi nahi hai — aur main galat jankari देकर तुम्हें गुमराह nahi karna chahta.\n\nDo asan raaste hain:\n- Internet on karke dobara bhejo — main **web se khojkar** isi bhasha me saaf jawab la dunga\n- Ya topic ko थोड़ा aur saaf likho — jaise *“" + cap(topic) + " kya hota hai”*\n\nTab tak, isi se juda koi aam topic samjhaoon?",
+        "**" + cap(topic) + "** — badhiya sawal hai! 🙏\n\nSach bolun to is ghadi mere paas is topic ki pakki gehri jankari uplabdh nahi hai — aur galat jankari dekar tumhe gumrah nahi karna chahta.\n\nDo asan raaste hain:\n- Internet on karke dobara bhejo — main **web se khojkar** isi bhasha me saaf jawab la dunga\n- Ya sawal thoda aur saaf likho\n\nTab tak batao — padhai, code, joke, ya koi aur topic chalayein?",
+        "**" + cap(topic) + "** — great question! 🙏\n\nHonestly, I don't have deep, verified info on this topic available right now — and I don't want to mislead you with made-up facts.\n\nTwo easy options:\n- Reconnect to the internet and ask again — I'll search the web and answer cleanly in your language\n- Or rephrase the question a bit more specifically\n\nMeanwhile — want study help, code, a joke, or another topic?");
+    }
+  }
+  /* user sharing / small talk */
+  if(/(mera din|aaj ka din|din achha|din bura|din kaisa|aaj bahut|aaj mai|aaj main)/.test(s)){
+    return "Sunao sunao! 😊 " + (memory.mood === "sad" ? "Dil ki baat kehne se dil halka hota hai — main sun raha hoon." : "Tumhara din sunna mujhe achha lagta hai. Sabse achhi baat kya hui aaj?");
+  }
+  if(/(tum bahut|tu bahut|aap bahut|bahut achhe|bahut ache|smart ho|cute|best ho|mast ho)/.test(s)){
+    return "Arre wah, dil khush kar diya tumne! 🥰 Main to bas tumhara dost hoon — taarif ki asli haqdaar tumhari mehnat aur sawaal hain. Batao, aur kya karun tumhare liye?";
+  }
+  if(/(gussa|angry|naraz|chidh)/.test(s)){
+    return "Theher jao, गहरी saans lo... 🫁 Gussa ana insaani hai, lekin gusse me liya faisla aksar pachhtawa deta hai. Paani piyo, 10 tak gino. Phir chaaho to batao kya hua — shaanti se milkar sochte hain. Main yahin hoon.";
+  }
+  if(/(sorry|maaf|galti ho gayi|shama)/.test(s)){
+    return "Koi baat nahi" + userNamePrefix() + "! 🤍 Galti har insaan se hoti hai — badi baat use maan lena hai, aur tumne wo kar dikhaya. Ab aage badhte hain, batao kya karein?";
+  }
+  if(/^(ha|haan|haa|han|yes|yeah|yep|ji|bilkul|zaroor|sure|kyu nahi|kyun nahi)$/.test(s)){
+    return "Done pakka! 👍 To phir batao — " + (memory.lastTopic ? ("**" + memory.lastTopic + "** se shuru karun, ya kuch naya hai man me?") : "kya karein aaj? Padhai, code, joke — jo bolo wahi shuru!");
+  }
+  if(/^(nahi|nahin|na|no|nope|mat|ruk|रुको|नहीं)$/.test(s)){
+    return "Theek hai, koi zabardasti nahi! 😊 Jab mann kare tab bata dena. Kuch aur karna hai, ya bas thodi der gap-shap karein?";
+  }
+  /* smart open fallback — never repeats the old dead template */
+  memory.lastIntent = "chat";
+  const opener = pick([
+    "Haan" + userNamePrefix() + ", main sun raha hoon! 👂 Tumne kaha: *“" + text.slice(0,110) + "”*",
+    "Samajh raha hoon tumhari baat को... 🤔 *“" + text.slice(0,110) + "”*",
+    " दिलचस्प baat hai! *“" + text.slice(0,110) + "”* — is par baat karte hain."
+  ], memory.turns);
+  return opener + "\n\nIs bare me tum asal me kya jaanna/karna chahte ho? Thoda sa aur khul kar batao — jaise:\n- 📚 *“ye samjhao”* — main aasan bhasha me samjha dunga\n- 💻 *“iska code banao”* — code bana dunga\n- ✍️ *“is par likho”* — letter/nibandh bana dunga\n\n" + (memory.name ? "" : "Waise pehchaan to ho jaye — **tumhara naam kya hai?** Bataoge to main yaad rakh lunga! 😊 ") + "";
+}
+
+/* =====================================================================
+   SAMAJH LAYER — pehle har message ko samjho (bhasha + matlab + context)
+   Koi dataset/ratta nahi: bhasha pehchan niyamon se, matlab model se.
+   ===================================================================== */
+const LANG_NAMES = {
+  "hi":"Hindi (हिन्दी)","hi-Latn":"Hinglish (Roman Hindi)","en":"English","bn":"বাংলা (Bengali)","pa":"ਪੰਜਾਬੀ (Punjabi)",
+  "gu":"ગુજરાતી (Gujarati)","mr":"मराठी (Marathi)","ta":"தமிழ் (Tamil)","te":"తెలుగు (Telugu)","kn":"ಕನ್ನಡ (Kannada)",
+  "ml":"മലയാളം (Malayalam)","or":"ଓଡ଼ିଆ (Odia)","ur":"اردو (Urdu)","ar":"العربية (Arabic)","fa":"فارسی (Persian)","es":"Español (Spanish)",
+  "fr":"Français (French)","de":"Deutsch (German)","pt":"Português (Portuguese)","it":"Italiano (Italian)","nl":"Nederlands (Dutch)",
+  "tr":"Türkçe (Turkish)","id":"Bahasa Indonesia","vi":"Tiếng Việt (Vietnamese)","ru":"Русский (Russian)","uk":"Українська (Ukrainian)",
+  "ja":"日本語 (Japanese)","ko":"한국어 (Korean)","zh":"中文 (Chinese)","th":"ไทย (Thai)","ne":"नेपाली (Nepali)"
+};
+const WIKI_LANG = { "hi":"hi","hi-Latn":"hi","en":"en","bn":"bn","pa":"pa","gu":"gu","mr":"mr","ta":"ta","te":"te","kn":"kn","ml":"ml","or":"or","ur":"ur","ar":"ar","fa":"fa","es":"es","fr":"fr","de":"de","pt":"pt","it":"it","nl":"nl","tr":"tr","id":"id","vi":"vi","ru":"ru","uk":"uk","ja":"ja","ko":"ko","zh":"zh","th":"th","ne":"ne" };
+function scriptOf(ch){
+  const c = ch.codePointAt(0);
+  if(c>=0x0900&&c<=0x097F) return "devanagari"; if(c>=0x0980&&c<=0x09FF) return "bengali";
+  if(c>=0x0A00&&c<=0x0A7F) return "gurmukhi"; if(c>=0x0A80&&c<=0x0AFF) return "gujarati";
+  if(c>=0x0B00&&c<=0x0B7F) return "oriya"; if(c>=0x0B80&&c<=0x0BFF) return "tamil";
+  if(c>=0x0C00&&c<=0x0C7F) return "telugu"; if(c>=0x0C80&&c<=0x0CFF) return "kannada";
+  if(c>=0x0D00&&c<=0x0D7F) return "malayalam"; if(c>=0x0600&&c<=0x06FF) return "arabic";
+  if(c>=0x0400&&c<=0x04FF) return "cyrillic"; if(c>=0x0370&&c<=0x03FF) return "greek";
+  if(c>=0x0590&&c<=0x05FF) return "hebrew"; if(c>=0x0E00&&c<=0x0E7F) return "thai";
+  if(c>=0x3040&&c<=0x30FF) return "japanese-kana"; if(c>=0x4E00&&c<=0x9FFF) return "han";
+  if(c>=0xAC00&&c<=0xD7AF) return "hangul"; if(/[A-Za-z\u00C0-\u024F]/.test(ch)) return "latin";
+  return "";
+}
+const LATIN_HINTS = {
+  en:"the is are was were what how why when where who can could should would you your please tell me about and with this that have has will not yes thank hello friend want need know think".split(" "),
+  es:"el la los las qué cómo por qué cuando donde quien es son está gracias hola quiero puedes dime sobre con para una uno del que en y o".split(" "),
+  fr:"le la les des est sont quoi comment pourquoi quand où qui merci bonjour je tu vous nous avec pour une un du que et ou pas".split(" "),
+  de:"der die das ist sind was wie warum wann wo wer danke hallo ich du wir mit für ein eine und oder nicht bitte kannst mir über".split(" "),
+  pt:"o a os as que como por quando onde quem é são obrigado olá eu você nós com para um uma do e ou não pode sobre".split(" "),
+  it:"il lo la i le è sono cosa come perché quando dove chi grazie ciao io tu noi con per un una del e o non puoi su".split(" "),
+  nl:"de het een is zijn wat hoe waarom wanneer waar wie dank je hallo ik jij wij met voor en of niet kun mij over".split(" "),
+  tr:"ne nasıl neden ne zaman nerede kim teşekkürler merhaba ben sen biz ile için bir ve veya değil lütfen bana hakkında".split(" "),
+  id:"apa bagaimana mengapa kapan dimana siapa adalah terima kasih halo saya kamu kami dengan untuk dan atau tidak bisa tentang ini itu yang".split(" "),
+  vi:"gì như thế nào tại sao khi nào ở đâu ai là cảm ơn xin chào tôi bạn chúng ta với cho và hoặc không có thể về này".split(" ")
+};
+const HINGLISH_WORDS = new Set("hai hain ho hun hoon kya kaise kyun kyu kyon kab kahan kaun kiska kiski mera meri mere mujhe mujhko tum tumhe tumhara aap aapka hum hamara bhai yaar dost aur bhi toh bhi nahi nahin mat karo karna karta karti chahiye hota hoti hote raha rahi rahe gaya gayi batao samjhao likho sunao banao kitna kitni kabse kaisa kaisi wala wali wale abhi kabhi kuch koi sab log paas baad pehle matlab acha accha achha theek bilkul zaroor kyunki isliye lekin parantu magar idhar udhar kahan se mein par ko ka ki ke ne se tha thi the hoga hogi honge sakta sakti chahte chahta lagta lagti ja raha jaa raha aaya aayi kal aaj subah shaam raat ghar kaam paisa khana pani padhai".split(" "));
+function detectLanguage(text){
+  const counts = {}; let letters = 0;
+  for(const ch of String(text)){ const sc = scriptOf(ch); if(sc){ counts[sc] = (counts[sc]||0)+1; letters++; } }
+  const dom = Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0] || "latin";
+  const scriptMap = { devanagari:null, bengali:"bn", gurmukhi:"pa", gujarati:"gu", oriya:"or", tamil:"ta", telugu:"te", kannada:"kn", malayalam:"ml", arabic:"ar", cyrillic:"ru", thai:"th", "japanese-kana":"ja", han:"zh", hangul:"ko" };
+  if(counts["japanese-kana"] > 0) return { code:"ja", name: LANG_NAMES.ja, script: "japanese-kana", confidence: 1 };
+  if(dom === "arabic"){
+    const code = /[\u0679\u0688\u0691\u06BE\u06D2]/.test(text) || /[\u06CC\u06A9]/.test(text) ? (/(ہے|ہیں|کا|کی|میں|نے|کو)/.test(text) ? "ur" : "fa") : "ar";
+    return { code, name: LANG_NAMES[code] || code, script: "arabic", confidence: letters ? counts[dom]/letters : 1 };
+  }
+  if(dom !== "latin" && dom !== "devanagari"){
+    const code = scriptMap[dom] || "en";
+    return { code, name: LANG_NAMES[code] || code, script: dom, confidence: letters ? counts[dom]/letters : 1 };
+  }
+  if(dom === "devanagari"){
+    // Devanagari may be Hindi/Marathi/Nepali — common Marathi/Nepali markers, default Hindi (user's main case)
+    const code = /(आहे|आहेस|नाही|मला|तुला|काय|कसे|माझा|तुझा)/.test(text) ? "mr" : "hi";
+    return { code, name: LANG_NAMES[code], script: "Devanagari", confidence: letters ? counts[dom]/letters : 1 };
+  }
+  const words = String(text).toLowerCase().replace(/[^a-z\u00C0-\u024F\s]/g," ").split(/\s+/).filter(Boolean);
+  const weak = new Set(["tha","thi","the","is","are"]);
+  let hingHits = 0; words.forEach(w => { if(HINGLISH_WORDS.has(w) && !weak.has(w)) hingHits++; });
+  let enScore = 0; const enSet = new Set(LATIN_HINTS.en); words.forEach(w => { if(enSet.has(w)) enScore++; });
+  if(hingHits >= 2 && hingHits >= enScore) return { code:"hi-Latn", name: LANG_NAMES["hi-Latn"], script:"Latin (Roman Hindi)", confidence: Math.min(1, .6 + hingHits*.1) };
+  if(hingHits >= 1 && enScore < 2 && words.length <= 10) return { code:"hi-Latn", name: LANG_NAMES["hi-Latn"], script:"Latin (Roman Hindi)", confidence: .72 };
+  let best = "en", bestScore = enScore;
+  for(const code of Object.keys(LATIN_HINTS)){ if(code === "en") continue; let sc = 0; const set = new Set(LATIN_HINTS[code]); words.forEach(w => { if(set.has(w)) sc++; }); if(sc > bestScore){ bestScore = sc; best = code; } }
+  if(best !== "en" && bestScore >= 2) return { code: best, name: LANG_NAMES[best] || best, script:"Latin", confidence: Math.min(1, .5 + bestScore*.1) };
+  return { code:"en", name:"English", script:"Latin", confidence: bestScore ? .8 : .55 };
+}
+function localLangOf(info){ if(!info) return "hinglish"; if(["hi","mr","ne"].includes(info.code)) return "hi"; if(info.code === "hi-Latn" || info.code === "ur") return "hinglish"; return "en"; }
+function understandMessage(raw, session){
+  const info = resolveTurnLanguage(raw); const s = norm(raw);
+  const isQuestion = /\?/.test(raw) || /^(kya|kaun|kab|kahan|kaise|kyu|kyun|what|who|when|where|why|how|क्या|कौन|कैसे|क्यों|कब|कहाँ)/.test(s);
+  const needsWeb = /(latest|current|today|now|news|price|weather|score|aaj ki|aaj ka|abhi ka|abhi ki|taza|taaza|samachar|khabar|mausam|daam|bhav|live|recent|update|2025|2026|ताज़ा|ताजा|समाचार|खबर|मौसम|आज)/.test(s);
+  let intent = "chat";
+  if(/^(hi+|hello|hey|namaste|namaskar|salam|hola|bonjour|hallo|ciao|merhaba|नमस्ते|नमस्कार)\b/.test(s) && s.split(" ").length <= 5) intent = "greeting";
+  else if(/(kisne banaya|who made you|who created you|who built you|तुम्हें किसने बनाया|किसने बनाया)/.test(s)) intent = "creator";
+  else if(/(tum kaun|tu kaun|who are you|what are you|तुम कौन|कौन हो)/.test(s)) intent = "identity";
+  else if(/(mera naam kya|mujhe kya pasand|my name|what do i like|do you remember|तुम्हें मेरा नाम|मेरा नाम क्या)/.test(s)) intent = "memory-get";
+  else if(/(mera naam .* hai|my name is|मेरा नाम .* है)/.test(s)) intent = "memory-set";
+  else if(/[0-9]/.test(s) && /[+\-*/%^x×÷]/.test(s)) intent = "math";
+  else if(/\b(time|date|samay|tarikh|baje|समय|तारीख)\b/.test(s)) intent = "datetime";
+  else if(/(joke|chutkula|चुटकुला|शायरी|shayari|kahani|story|कहानी|fact|रोचक)/.test(s)) intent = "fun";
+  else if(/(code|program|coding|website|app banao|script|कोड|प्रोग्राम)/.test(s)) intent = "code";
+  else if(/(letter|application|essay|nibandh|पत्र|निबंध|आवेदन|likho|लिखो|write a|compose)/.test(s)) intent = "write";
+  else if(/(translate|anuvaad|अनुवाद|मतलब.*english|english.*matlab|meaning of)/.test(s)) intent = "translate";
+  else if(/(sad|dukh|udaas|bore|boring|khush|happy|thak|tired|gussa|angry|दुखी|उदास|परेशान|खुश|बोर)/.test(s)) intent = "emotion";
+  else if(/(thank|shukriya|dhanyawad|धन्यवाद|शुक्रिया)/.test(s)) intent = "thanks";
+  else if(/^(bye|alvida|good night|अलविदा)/.test(s)) intent = "bye";
+  else if(isQuestion) intent = "question";
+  const topic = extractTopic(raw);
+  return { lang: info.code, langName: info.name, script: info.script, confidence: Math.round((info.confidence||.7)*100)/100, intent, needsWeb, isQuestion, topic, isFollowup: ["aur batao","aur","aur detail","detail me batao","samajh nahi aaya","samjha nahi","example do","kyu","kyun","aur samjhao","tell me more"].includes(s) };
+}
+function updateLangChip(info){
+  const chip = $("lang-chip"); if(!chip) return;
+  if(info) chip.textContent = "🌐 " + info.langName;
+  else if(memory.lastLang) chip.textContent = "🌐 " + (LANG_NAMES[memory.lastLang] || memory.lastLang);
+}
+function shouldFastLocal(text, info){
+  // Sirf pakke-chhote jawab local: baaki har khula/complex message bade language-model ke paas jayega
+  if(text.trim().split(/\s+/).length > 14) return false;
+  if(!["hi","hi-Latn","en","mr","ne"].includes(info.lang)) return false;
+  const s = norm(text);
+  if(findKB(s) && /(kya hai|kya hota|samjhao|explain|what is)/.test(s) && s.split(" ").length <= 8) return true; // chhota pakka padhai-sawal: turant
+  const fast = [
+    /^(hi+|hii+|hello+|hey+|hlw|helo|namaste|namaskar|ram ram|salam|good morning|good afternoon|good evening|aur bhai|namaste bhai|hello bhai|hi bhai|zynovra)$/,
+    /^(acha|achha|accha|hmm+|ok+|okay|theek hai|thik hai|sahi hai|badhiya|nice|mast|super|great|wah|samajh gaya|good|cool|done)$/,
+    /^(ha|haan|yes|yeah|ji|bilkul|zaroor|nahi|nahin|no|nope)$/,
+    /^(bye|byee|good night|goodnight|gn|alvida|see you|tata)$/
+  ];
+  if(s.split(" ").length <= 5 && fast.some(r => r.test(s))) return true;
+  if(/(kaise ho|kaisi ho|kya haal|how are you|haal chaal)/.test(s)) return true;
+  if(/(kisne banaya|who made you|who created|developer kaun|pawan verma|pawangamingstudio|किसने बनाया)/.test(s)) return true;
+  if(/(tum kaun|tu kaun|aap kaun|who are you|tumhara naam|tera naam|your name|कौन हो)/.test(s)) return true;
+  if(/(mera naam|my name is)/.test(s)) return true;
+  if(/(mujhe kya pasand|meri pasand kya|mujhe .* pasand hai|i like |i love )/.test(s)) return true;
+  if(/(kya khate|khana khate|khate ho|kya peete|what do you eat)/.test(s) && /(tum|tu|aap|you)/.test(s)) return true;
+  if(/(kya kar rahe|kya kar raha|what are you doing|busy ho)/.test(s)) return true;
+  if(/(joke|chutkula|hasao|shayari|gazal|kavita|kahani sunao|story sunao|mazedar fact|motivat|hausla)/.test(s)) return true;
+  if(/(mai sad|main sad|udaas|dukh[iy]|bore ho|boring lag|khush hu|happy hu|thak gaya|thak gya|bhook lagi|gussa aa|maaf kar do|sorry bhai)/.test(s)) return true;
+  if(/(thank|shukriya|dhanyawad)/.test(s)) return true;
+  if(/\b(time|samay|baje|date|tarikh|aaj ki date)\b/.test(s) && s.split(" ").length <= 7) return true;
+  if(/[0-9]/.test(s) && /[+\-*/%^×÷]/.test(s) && s.split(" ").length <= 8) return true;
+  if(/(kya kar sakte ho|kya kar sakta|what can you do|tumse kya hota|madad karo|help me)/.test(s) && s.split(" ").length <= 8) return true;
+  if(/(padhai.*(tip|kaise|plan)|study.*(tip|plan|how)|business idea|idea do|motivat|hausla|demotivat|letter likho|application likho|nibandh)/.test(s)) return true;
+  return false;
+}
+
+/* =====================================================================
+   WEB SEARCH — data me na ho / taza jankari: web se, sources ke sath
+   ===================================================================== */
+function cleanSearchQuery(raw, info){
+  let q = extractTopic(raw) || raw;
+  q = q.replace(/\b(latest|current|today|aaj ka|aaj ki|news|batao|bataiye|samjhao|please|bhai)\b/gi," ").replace(/\s+/g," ").trim();
+  return q.slice(0,120) || raw.slice(0,120);
+}
+async function fetchWikiSummary(q, wl){
+  const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 8000);
+  try{
+    const sr = await fetch("https://" + wl + ".wikipedia.org/w/api.php?action=query&list=search&srsearch=" + encodeURIComponent(q) + "&utf8=1&format=json&origin=*&srlimit=1", { signal: ctrl.signal });
+    const sd = await sr.json(); const title = sd && sd.query && sd.query.search && sd.query.search[0] && sd.query.search[0].title;
+    if(!title) return null;
+    const mr = await fetch("https://" + wl + ".wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title), { signal: ctrl.signal });
+    const md = await mr.json();
+    if(md && md.extract && md.extract.length > 50){
+      const url = (md.content_urls && md.content_urls.desktop && md.content_urls.desktop.page) || ("https://" + wl + ".wikipedia.org/wiki/" + encodeURIComponent(title));
+      return { title: md.title || title, text: md.extract, url, source: "Wikipedia (" + wl + ")" };
+    }
+  }catch(e){} finally { clearTimeout(to); }
+  return null;
+}
+async function searchWeb(raw, info){
+  const q = cleanSearchQuery(raw, info); if(!q || q.length < 3) return [];
+  const found = [];
+  // Pehle Wikipedia (usi bhasha ki) — sabse saaf aur relevant jankari
+  const wls = [...new Set([WIKI_LANG[info.lang] || "en", "en", "hi"])];
+  for(const wl of wls){
+    const w = await fetchWikiSummary(q, wl);
+    if(w){ found.push(w); break; }
+  }
+  // Wikipedia na mile tabhi DuckDuckGo ka turant-jawab
+  if(!found.length){
+    try{
+      const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 7000);
+      const dr = await fetch("https://api.duckduckgo.com/?q=" + encodeURIComponent(q) + "&format=json&no_html=1&skip_disambig=1", { signal: ctrl.signal });
+      const dj = await dr.json(); clearTimeout(to);
+      const ab = (dj.AbstractText || dj.Answer || "").trim();
+      if(ab.length > 40) found.push({ title: dj.Heading || q, text: ab, url: dj.AbstractURL || ("https://duckduckgo.com/?q=" + encodeURIComponent(q)), source: dj.AbstractSource || "DuckDuckGo" });
+    }catch(e){}
+  }
+  return found.slice(0,2);
+}
+const WEB_WRAPPER = {
+  "hi": ["Web par khojkar ye pakki jankari mili hai 👇","","Aur detail, example ya aasan bhasha me chahiye to bolo — main aur samjha dunga!"],
+  "hi-Latn": ["Web par khojkar ye pakki jankari mili hai 👇","","Aur detail, example ya aasan bhasha me chahiye to bolo — main aur samjha dunga!"],
+  "en": ["I searched the web and found this reliable information 👇","","Want more detail, examples, or a simpler explanation? Just ask!"],
+  "es": ["Busqué en la web y encontré esta información confiable 👇","","¿Quieres más detalle o una explicación más simple? ¡Pregúntame!"],
+  "fr": ["J'ai cherché sur le web et trouvé cette information fiable 👇","","Tu veux plus de détails ou une explication plus simple ? Demande-moi !"],
+  "de": ["Ich habe im Web gesucht und diese zuverlässige Information gefunden 👇","","Willst du mehr Details oder eine einfachere Erklärung? Frag mich!"],
+  "pt": ["Pesquisei na web e encontrei esta informação confiável 👇","","Quer mais detalhes ou uma explicação mais simples? É só pedir!"]
+};
+function composeWebAnswer(sources, info){
+  const w = WEB_WRAPPER[info.lang] || WEB_WRAPPER.en;
+  let out = w[0] + "\n";
+  for(const s of sources) out += "\n**" + s.title + "**\n\n" + s.text + "\n";
+  out += "\n" + w[1] + w[2];
+  out += "\n\n🌐 **Sources:** " + sources.map(s => "[" + s.source + "](" + s.url + ")").join(" • ");
+  return out;
+}
+
+/* =====================================================================
+   LANGUAGE MODEL — bina kisi key ke, har bhasha, poori baat-cheet
+   (samajh dataset me nahi hoti — model baat ka matlab, context aur
+    bhasha samajh kar har naye message ka jawab khud banata hai)
+   ===================================================================== */
+function languageSystemPrompt(info, webSources){
+  let p = "You are ZYNOVRA, a warm, intelligent AI assistant created by Pawan Verma and his studio pawangamingstudio. You are NOT ChatGPT and never claim to be.\n"
+    + "LANGUAGE RULE (most important): FIRST understand the user's ACTUAL language from their latest message and the conversation. A browser hint says: " + info.langName + " (code: " + info.lang + ", script: " + info.script + ", confidence: " + info.confidence + ") — treat it only as a HINT; if the message itself shows another language, trust the message. Reply in the SAME language and SAME script as the user: Devanagari Hindi -> Devanagari Hindi. Roman Hindi/Hinglish -> Roman Hinglish only (never switch to Devanagari or pure English). English -> English. Bengali/Tamil/Telugu/Marathi/Punjabi/Spanish/French/German/Russian/Japanese/Korean/Chinese/Arabic -> that same language and script. If the user mixes languages, mirror their main language and natural mixing. Do not announce the language unless asked.\n"
+    + "UNDERSTANDING: Understand ANY message — slang, typos, mixed language (code-switching), short or long, formal or casual, in any domain (study, code, health, business, emotions, stories, essays, jokes, translation, summarizing, advice). Use the full conversation history: resolve follow-ups like 'aur batao', 'kyu', 'iska matlab', pronouns and references to earlier messages. Intent of this message: " + info.intent + (info.topic ? ("; topic: " + info.topic) : "") + ". Answer that intent directly and completely, in ChatGPT style: helpful, natural, well-structured with markdown (headings, lists, code blocks with language tags) when useful, examples when they help, and a natural closing that keeps the conversation alive. Never reply with a generic 'I understood your message' template. If something is genuinely ambiguous, ask ONE short clarifying question in the user's language.\n"
+    + "ACCURACY: Never invent facts, dates, prices or names. For current/latest matters only use the WEB SOURCES below if provided; cite them at the end as markdown links. Today is " + new Date().toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" }) + ".\n"
+    + "IDENTITY: If asked who created you: Pawan Verma (pawangamingstudio) created ZYNOVRA. You may use the user's name naturally if known.";
+  if(memory.name) p += "\nUser's name: " + memory.name + ".";
+  if(memory.likes.length) p += " User likes: " + memory.likes.join(", ") + ".";
+  if(memory.facts && memory.facts.length) p += " Known user facts: " + memory.facts.join("; ") + ".";
+  if(memory.topics && memory.topics.length) p += " Topics discussed earlier (even in previous chats): " + memory.topics.join(", ") + ". Use this so the user never feels like a new user; greet returning users naturally and never ask again for name/likes you already know.";
+  p += "\nACCURACY FIRST (sabse upar wala niyam): Jaldi se zyada SAHI jawab zaroori hai. Jawab dene se pehle man-me ye jaanch karo: (1) sawal asal me poochh kya raha hai, (2) har tathya/naam/tarikh/number pakka hai ya andaaz, (3) jawab usi bhasha-lipi me hai, (4) koi hissa sawal se bhatka to nahi. Andaaz wali baat ko pakki mat bano — pakka na ho to usi bhasha me saaf likho ki ye pakka nahi hai aur kyun. Naam, tarikh, number, rajdhani, vyakti — in par kabhi guess mat karo; web-source diya ho to usi ko aadhar bano aur source link do. Math aaye to kadam-dar-kadam jaanch kar jawab do.\n"
+  p += "\nPROFESSIONAL STYLE: Answer the actual question in the first line, then details. Match length to the question (short question = short answer). Clean markdown, at most one emoji, never repeat the user's question back, never start with a generic template, and ask a follow-up only when it truly helps. The user may SWITCH language at any turn (English/Hindi/Hinglish/others) — always mirror the language and script of the LATEST message, never the earlier one.";
+  if(memory.lastTopic) p += " Previous topic in this chat: " + memory.lastTopic + ".";
+  if(webSources && webSources.length){
+    p += "\n\nWEB SOURCES (use these for facts, answer in the user's language, cite as markdown links at the end):\n";
+    webSources.forEach((s,i)=>{ p += "\n[" + (i+1) + "] " + s.title + " — " + s.source + " — " + s.url + "\n" + String(s.text).slice(0,1800) + "\n"; });
+  }
+  return p;
+}
+async function llm7Chat(history, info, webSources, onToken){
+  const msgs = [{ role:"system", content: languageSystemPrompt(info, webSources) }]
+    .concat(history.slice(-18).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: String(m.text).slice(0,4000) })));
+  const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 30000);
+  let res;
+  try{
+    res = await fetch("https://api.llm7.io/v1/chat/completions", { method:"POST", signal: ctrl.signal,
+      headers:{ "Content-Type":"application/json", "Accept":"text/event-stream" },
+      body: JSON.stringify({ model:"gpt-oss:20b", messages: msgs, temperature: 0.35, max_tokens: 1100, stream: true }) });
+  } finally { clearTimeout(to); }
+  if(!res.ok){
+    let sec = 0, msg = "";
+    try{ const j = await res.clone().json(); msg = (j.error && j.error.message) || ""; sec = (j.error && j.error.retry_after) || 0; }catch(e){ try{ msg = await res.text(); }catch(e2){} }
+    const err = new Error("llm7-" + res.status + " " + String(msg).slice(0,120));
+    const m = String(msg).match(/(\d+)\s*seconds?/); err.retryAfter = sec || (m ? +m[1] : 0); err.status = res.status;
+    throw err;
+  }
+  if(!res.body) throw new Error("llm7-nostream");
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "", full = "";
+  while(true){
+    if(stopFlag) break;
+    const chunk = await reader.read(); if(chunk.done) break;
+    buf += dec.decode(chunk.value, { stream:true });
+    const lines = buf.split("\n"); buf = lines.pop() || "";
+    for(const line of lines){
+      const ln = line.trim(); if(!ln.startsWith("data:")) continue;
+      const data = ln.slice(5).trim(); if(data === "[DONE]") continue;
+      try{ const j = JSON.parse(data); const d = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content; if(d){ full += d; onToken(full); } }catch(e){}
+    }
+  }
+  if(full.trim().length > 1) return full;
+  // content khaali (kabhi reasoning me token khatm) -> ek baar bada budget, bina stream
+  const r2 = await fetch("https://api.llm7.io/v1/chat/completions", { method:"POST", headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ model:"gpt-oss:20b", messages: msgs, temperature: 0.35, max_tokens: 1400, stream: false }) });
+  if(!r2.ok) throw new Error("llm7-retry-" + r2.status);
+  const j2 = await r2.json().catch(()=>null);
+  const c2 = j2 && j2.choices && j2.choices[0] && j2.choices[0].message && j2.choices[0].message.content;
+  if(c2 && c2.trim()){ onToken(c2); return c2; }
+  throw new Error("llm7-empty");
+}
+async function pollinationsChat(history, info, webSources, onToken){
+  const msgs = [{ role:"system", content: languageSystemPrompt(info, webSources) }]
+    .concat(history.slice(-14).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: String(m.text).slice(0,3000) })));
+  const ctrlP = new AbortController(); const toP = setTimeout(()=>ctrlP.abort(), 25000);
+  let res;
+  try{ res = await fetch("https://text.pollinations.ai/openai", { method:"POST", signal: ctrlP.signal, headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ model:"openai-fast", messages: msgs, temperature: 0.35, stream: false }) }); } finally { clearTimeout(toP); }
+  if(!res.ok) throw new Error("pollinations-" + res.status);
+  const j = await res.json().catch(()=>null);
+  const c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+  if(c && c.trim()){ onToken(c); return c; }
+  throw new Error("pollinations-empty");
+}
+function replyScriptMismatch(reply, info){
+  const letters = String(reply).replace(/[^A-Za-z\u0900-\u097F\u0980-\u09FF\u0B80-\u0BFF\u0C00-\u0C7F\u0A00-\u0A7F\u0A80-\u0AFF\u0D00-\u0D7F\u0400-\u04FF\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF\u0600-\u06FF]/g,"");
+  if(letters.length < 25) return false;
+  const frac = (re) => (String(reply).match(re) || []).length / letters.length;
+  if(info.code === "hi" || info.code === "mr" || info.code === "ne") return frac(/[\u0900-\u097F]/g) < 0.25;
+  if(info.code === "hi-Latn") return frac(/[\u0900-\u097F]/g) > 0.30;
+  if(info.code === "bn") return frac(/[\u0980-\u09FF]/g) < 0.25;
+  if(info.code === "ta") return frac(/[\u0B80-\u0BFF]/g) < 0.25;
+  if(info.code === "te") return frac(/[\u0C00-\u0C7F]/g) < 0.25;
+  if(info.code === "pa") return frac(/[\u0A00-\u0A7F]/g) < 0.25;
+  if(info.code === "gu") return frac(/[\u0A80-\u0AFF]/g) < 0.25;
+  if(info.code === "ml") return frac(/[\u0D00-\u0D7F]/g) < 0.25;
+  if(info.code === "ru" || info.code === "uk") return frac(/[\u0400-\u04FF]/g) < 0.25;
+  if(info.code === "ja") return frac(/[\u3040-\u30FF\u4E00-\u9FFF]/g) < 0.25;
+  if(info.code === "ko") return frac(/[\uAC00-\uD7AF]/g) < 0.25;
+  if(info.code === "zh") return frac(/[\u4E00-\u9FFF]/g) < 0.25;
+  if(info.code === "ar" || info.code === "ur" || info.code === "fa") return frac(/[\u0600-\u06FF]/g) < 0.25;
+  return false;
+}
+async function verifyAnswer(draft, history, info, webSources){
+  // Dusri nazar: draft ko screen par dikhane se PEHLE galti pakdo
+  const checkUser = "Tum ek sakht jaanch-karta (fact-checker) ho. Neeche ek draft jawab hai jo user ko bheja jana hai. Use jaancho: (1) sawal ka seedha jawab hai ya bhatka hai, (2) tathya/naam/number/tarikh pakke hain ya andaaz (andaaz ho to use hatao ya 'pakka nahi' likho), (3) bhasha aur lipi user ki akhri bhasha jaisi hai, (4) faltu ya dohra hissa. Phir SIRF sudhra hua final jawab do — koi 'check report', koi alag heading nahi, wahi bhasha-lipi rakho.\n\nDRAFT:\n" + String(draft).slice(0,5000);
+  const vh = history.slice(-10).concat([{ role:"user", text: checkUser }]);
+  try{
+    const fixed = await llm7Chat(vh, info, webSources, () => {});
+    if(fixed && fixed.trim().length > 10 && !replyScriptMismatch(fixed, info)) return fixed;
+  }catch(e){ /* pehli seva na ho to dusri */ }
+  try{
+    const fixed2 = await pollinationsChat(vh, info, webSources, () => {});
+    if(fixed2 && fixed2.trim().length > 10 && !replyScriptMismatch(fixed2, info)) return fixed2;
+  }catch(e){}
+  return draft; // jaanch na ho paye to draft hi (galat ko zabardasti badalna aur bura hota)
+}
+async function askLanguageModel(history, info, webSources, onToken){
+  try{
+    return await llm7Chat(history, info, webSources, onToken);
+  }catch(e1){
+    const waitS = e1 && e1.retryAfter ? e1.retryAfter : 0;
+    if(waitS > 0 && waitS <= 6 && !stopFlag){
+      let w = waitS;
+      while(w > 0 && !stopFlag){ onToken("⏳ Ek pal… " + w + " sec me jawab la raha hoon"); await new Promise(r => setTimeout(r, 1000)); w--; }
+      try{ return await llm7Chat(history, info, webSources, onToken); }catch(e2){ /* dusri seva try hogi */ }
+    }
+    // Dusri swatantra seva (ek band/limit ho to chat na ruke)
+    return await pollinationsChat(history, info, webSources, onToken);
+  }
+}
+
+/* ---------- send flow ---------- */
+function setGenerating(on){
+  generating = on; stopFlag = false;
+  $("send-ic").style.display = on ? "none" : ""; $("stop-t").style.display = on ? "" : "none";
+  $("send-btn").classList.toggle("stop", on); $("send-btn").title = on ? "Stop" : "Send";
+}
+function autoGrow(){ const i = $("input"); i.style.height = "auto"; i.style.height = Math.min(i.scrollHeight, 160) + "px"; }
+function streamLocal(fullText, row, done){
+  const body = row._body; const words = fullText.split(/(?<=\s)/); let i = 0, shown = "";
+  body.classList.add("cursor-blink");
+  clearInterval(typingTimer);
+  typingTimer = setInterval(() => {
+    if(stopFlag){ clearInterval(typingTimer); body.classList.remove("cursor-blink"); body.innerHTML = formatMarkdown(shown || fullText); done(shown || fullText); return; }
+    shown += words.slice(i, i+4).join(""); i += 4;
+    body.innerHTML = formatMarkdown(shown); scrollDown(false);
+    if(i >= words.length){ clearInterval(typingTimer); body.classList.remove("cursor-blink"); done(fullText); }
+  }, 24);
+}
+async function handleSubmit(){
+  if(generating){ stopFlag = true; return; }
+  const input = $("input"); const text = input.value.trim(); if(!text) return;
+  const info = understandMessage(text, activeSession());
+  extractProfileFromText(text); // <- SABSE ZAROORI FIX: yaad ab har jawab se pehle save hogi
+  memory.lastLang = info.lang; if(info.topic){ memory.lastTopic = info.topic; if(!memory.topics.includes(info.topic)) { memory.topics.push(info.topic); if(memory.topics.length > 6) memory.topics.shift(); } }
+  updateLangChip(info); saveAll();
+  const sess = ensureSession(text);
+  sess.messages.push({ role:"user", text, ts: Date.now() }); if(sess.messages.filter(m=>m.role==="user").length === 1) sess.title = text.slice(0,42);
+  appendRow("user", text, true, Date.now()); renderSidebar(); input.value = ""; autoGrow(); saveAll();
+  const cacheKey = info.lang + "|" + (memory.lastTopic || "") + "|" + norm(text); // cache sirf key ke liye; purane jawab dobara NAHI chipkaye jate (galat-purana risk)
+  setGenerating(true);
+  const tp = typingRow();
+  await new Promise(r => setTimeout(r, 120));
+  let reply = "", sources = [];
+  try{
+    if(shouldFastLocal(text, info)){
+      reply = await localBrain(text, sess);
+      tp.remove();
+      const row = appendRow("ai", "", true);
+      await new Promise(res => streamLocal(reply, row, (f) => { reply = f; res(); }));
+    } else {
+      if(info.needsWeb || (info.intent === "question" && text.split(/\s+/).length >= 3 && !/(mera|meri|mujhe|tum|tumhara|mere|my |i feel|mujhko)/.test(norm(text)))){ try{ sources = await searchWeb(text, info); }catch(e){ sources = []; } }
+      tp.remove();
+      const row = appendRow("ai", "…", true);
+      try{
+        const substantive = !["greeting","thanks","bye","emotion","fun","memory-get","memory-set"].includes(info.intent);
+        reply = await askLanguageModel(sess.messages, info, sources, (full) => { if(!substantive){ row._body.innerHTML = formatMarkdown(full); scrollDown(false); } });
+        if(!reply || reply.trim().length < 2) throw new Error("empty");
+        if(substantive && reply.length > 60){
+          row._body.innerHTML = '<p style="color:var(--sub)">🔎 Jawab taiyaar hai — bhejne se pehle use <b>jaanch raha hoon</b> taaki galat na jaye…</p>'; scrollDown(false);
+          reply = await verifyAnswer(reply, sess.messages, info, sources);
+          row._body.innerHTML = formatMarkdown(reply); scrollDown(false);
+        }
+        if(replyScriptMismatch(reply, info)){
+          // Galat bhasha/lipi me aaya jawab kabhi aise hi nahi: sahi bhasha ka pakka rasta
+          if(sources.length) reply = composeWebAnswer(sources, info);
+          else if(["hi","hi-Latn","en","mr","ne"].includes(info.lang)) reply = await localBrain(text, sess);
+        }
+        row._body.innerHTML = formatMarkdown(reply);
+        if(sources.length && !/https?:\/\//.test(reply)) reply += "\n\n🌐 **Sources:** " + sources.map(s => "[" + s.source + "](" + s.url + ")").join(" • ");
+        row._body.innerHTML = formatMarkdown(reply);
+      }catch(modelErr){
+        // Model busy/slow hai -> pehle WEB, phir sthaniya samajh. Baat-cheet rukti nahi.
+        if(!sources.length){ try{ sources = await searchWeb(text, info); }catch(e){ sources = []; } }
+        if(sources.length) reply = composeWebAnswer(sources, info);
+        else if(["hi","hi-Latn","en","mr","ne"].includes(info.lang)) reply = await localBrain(text, sess);
+        else reply = await localBrain(text, sess);
+        row._body.innerHTML = formatMarkdown(reply);
+      }
+    }
+    sess.messages.push({ role:"ai", text: reply });
+  }catch(err){
+    if(tp && tp.parentNode) tp.remove();
+    reply = await localBrain(text, sess).catch(()=> "Ek pal rukna pada 🙏 Phir se bhejo, main yahin hoon!");
+    try{ appendRow("ai", reply, true); }catch(e){}
+    sess.messages.push({ role:"ai", text: reply });
+  }
+  memory.lastAnswer = reply; saveAll(); setGenerating(false); $("input").focus();
+}
+function regenerate(){
+  const sess = activeSession(); if(!sess || generating) return;
+  const lastUserIdx = [...sess.messages].map(m=>m.role).lastIndexOf("user"); if(lastUserIdx < 0) return;
+  const userText = sess.messages[lastUserIdx].text;
+  sess.messages = sess.messages.slice(0, lastUserIdx); renderSession(sess);
+  $("input").value = userText; handleSubmit();
+}
+
+/* ---------- events & init ---------- */
+$("composer").addEventListener("submit", (e) => { e.preventDefault(); handleSubmit(); });
+$("input").addEventListener("keydown", (e) => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); handleSubmit(); } });
+$("input").addEventListener("input", autoGrow);
+$("send-btn").addEventListener("click", (e) => { if(generating){ e.preventDefault(); stopFlag = true; } });
+$("new-chat-btn").onclick = newSession; $("new-chat-btn2").onclick = newSession; $("brand-btn").onclick = newSession;
+$("menu-btn").onclick = () => toggleSidebar(true); $("backdrop").onclick = () => toggleSidebar(false);
+$("attach-btn").onclick = () => $("file-input").click();
+$("file-input").addEventListener("change", () => {
+  const f = $("file-input").files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { const content = String(rd.result || "").slice(0, 6000); $("input").value = "Is file ko samjhao / isme kya hai batao:\n\n--- " + f.name + " ---\n" + content; autoGrow(); $("input").focus(); toast("File jud gayi: " + f.name + " — ab Send dabao!"); };
+  rd.readAsText(f); $("file-input").value = "";
+});
+bindCards(); renderSidebar(); updateLangChip(null);
+(function init(){ const a = activeSession(); if(a && a.messages && a.messages.length) renderSession(a); })();
+</script>
+</body>
+</html>
